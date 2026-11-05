@@ -63,13 +63,13 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 if showAPIKey {
-                                    TextField("sk-ant-...", text: $apiKeyText)
+                                    TextField("AIza...", text: $apiKeyText)
                                         .font(.system(.caption, design: .monospaced))
                                         .foregroundStyle(ApexColor.textPrimary)
                                         .autocorrectionDisabled()
                                         .textInputAutocapitalization(.never)
                                 } else {
-                                    SecureField("sk-ant-...", text: $apiKeyText)
+                                    SecureField("AIza...", text: $apiKeyText)
                                         .font(.system(.caption, design: .monospaced))
                                         .foregroundStyle(ApexColor.textPrimary)
                                         .autocorrectionDisabled()

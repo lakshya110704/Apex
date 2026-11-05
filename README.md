@@ -1,59 +1,60 @@
 # Apex
 
-A native iOS personal agent app. It reads your Apple Watch health data, logs workouts and meals, generates an AI daily plan, and pushes back on you like an objective coach — not a cheerleader.
-
-No backend. SwiftUI + SwiftData, offline-first, all AI calls go straight from the device to Gemini.
-
-## Why
-
-Most fitness/tracking apps show you charts. Apex is meant to actually *use* the data — HRV, sleep, activity rings, training history, calendar, GitHub activity — and turn it into a daily plan and a coach that argues with you using your own numbers instead of just agreeing with whatever you ask.
+A native iOS app that combines Apple Watch health data, workout and meal logging, an AI daily plan and a chat coach. SwiftUI + SwiftData, no backend of its own.
 
 ## Features
 
-| Tab | What it does |
+| Tab | What the code does |
 |---|---|
-| **Today** | Activity rings, sleep/HRV/HR stats, AI-generated daily plan as a visual timeline, focus timer, calendar events, recent workouts/nutrition |
-| **Workouts** | Log tennis (scores, drills, court) and gym sessions; weekly planned-vs-actual training schedule |
-| **Nutrition** | Snap a meal photo → AI estimates calories + macros |
-| **Progress** | XP, levels, streaks, all-time stats, 15 achievements |
-| **Coach** | Chat that cites your actual numbers (calories left, protein left, HRV vs. 7-day avg, sleep score) and says no to bad decisions when the data doesn't support them |
+| **Today** | Activity rings, sleep / HRV / resting HR, AI-generated daily plan shown as a timeline, focus timer, today's calendar events, recent workouts and meals |
+| **Workouts** | Log tennis and gym sessions, import workouts from Apple Watch, weekly planned vs actual schedule, muscle recovery list |
+| **Nutrition** | Log a meal from a photo or a text description and get calorie and macro estimates from the AI |
+| **Progress** | XP and level, workout and meal streaks, all-time stats, achievements, "Muscles Worked" heatmap (sets per muscle group) |
+| **Coach** | Chat with the AI. The system prompt tells it to answer from your numbers (calories and protein left, HRV vs 7-day average, sleep) |
 
-Also: morning/evening check-ins, gamified XP for logging things, GitHub commit tracking, EventKit calendar integration.
+Also: morning and evening check-ins, XP for logging, a local notification at 8pm when a streak is at risk or nothing is logged, GitHub commits for today (public events API, username set in Settings).
+
+## AI services
+
+- **Gemini** (`gemini-2.5-flash`, Google AI REST API). Needs your own API key, entered in Settings. Used for meal analysis, daily plan and coach chat. Meal photos and the health/context summary are sent to Google when you use these features.
+- **Ollama (optional)**. If you enter a LAN address in Settings and it responds, text requests go to your own Ollama server instead. Meal photo analysis always uses Gemini.
+- The class is named `ClaudeService` for historical reasons. It does not call Anthropic.
+
+The Gemini key is stored in `UserDefaults` on the device (not the Keychain) and is never part of the source.
 
 ## Stack
 
-- **SwiftUI + SwiftData** — native, offline-first, no backend
-- **HealthKit** — Apple Watch data: sleep, HRV, resting HR, VO2 max, activity rings, workouts
-- **EventKit** — today's calendar events
-- **Gemini 2.5 Flash** (Google AI API) — meal photo analysis, daily plan generation, coach chat
-- **XcodeGen** (`project.yml`) — the `.xcodeproj` is generated, not hand-edited or committed as a binary
+- SwiftUI, SwiftData (iOS 17+)
+- HealthKit (read only), EventKit (calendar, read only), UserNotifications
+- XcodeGen (`project.yml`) to generate `Apex.xcodeproj`
 
 ## Project structure
 
 ```
 Apex/
-  Models/     SwiftData @Model classes (UserProfile, WorkoutSession, MealEntry, DailyPlan, ...)
-  Services/   HealthKitService, ClaudeService (Gemini), GamificationService, CalendarService, GitHubService, FocusTimerService
-  Views/      One folder per tab: Today, Workouts, Nutrition, Progress, Coach, Morning, Evening, Settings, Components
-  Data/       Static exercise database
-  Utils/      Constants, extensions
+  Models/     SwiftData models and enums
+  Services/   HealthKitService, ClaudeService (Gemini + Ollama), GamificationService, CalendarService, GitHubService, FocusTimerService, NotificationService
+  Views/      One folder per tab plus Morning, Evening, Settings, Components
+  Data/       Exercise and tennis drill lists
+  Utils/      Constants, extensions, MuscleGroupTracker
 ```
-
-The AI context assembled for every request lives in `ApexContext` (`Services/ClaudeService.swift`) — a single struct bundling health, recovery, training history, nutrition, calendar, and GitHub data so the AI always reasons from real numbers.
 
 ## Getting started
 
-See [SETUP.md](SETUP.md) for the full walkthrough (Xcode project creation, HealthKit capability, Info.plist keys, Gemini API key, build & run).
+See [SETUP.md](SETUP.md). In short: Xcode 15.2 or newer, an iOS 17+ device (HealthKit data needs a real device), and a free Google AI Studio API key.
 
-Quick version:
-1. Xcode 15.2+, iOS 17.0+ device, a free Gemini API key
-2. `xcodegen generate` (or open the existing `.xcodeproj`)
-3. Build & run, then add your name + API key in Settings
+```bash
+xcodegen generate   # optional, the .xcodeproj is committed
+open Apex.xcodeproj
+```
 
-## Project history
+Add your name and API key in Settings on first launch.
 
-[DEVLOG.md](DEVLOG.md) has the full session-by-session history — architecture decisions, bugs and their root causes, and what's planned next.
+## Status
 
-## Status / roadmap
+- Builds with Xcode 27.2 for the iOS 18.0 simulator.
+- Unit tests: not yet run.
+- HealthKit, notification and AI behaviour on a real device: not yet verified by an automated test.
+- One achievement (`sleepWeek`) is defined but never awarded.
 
-Actively developed. Near-term ideas (from DEVLOG): muscle group tracking, tennis match trends, streak-protection notifications, a home screen widget, persistent coach memory across sessions.
+History and design notes are in [DEVLOG.md](DEVLOG.md).

@@ -1,14 +1,14 @@
-# Apex — Setup Guide
+# Apex - Setup Guide
 
 ## Prerequisites
 - macOS with Xcode 15.2+ installed
 - iPhone with iOS 17.0+
 - Apple Watch (optional but recommended)
-- Anthropic API key (free at console.anthropic.com)
+- Google AI Studio API key (free at aistudio.google.com/apikey)
 
 ---
 
-## Step 1 — Create the Xcode Project
+## Step 1 - Create the Xcode Project
 
 1. Open **Xcode**
 2. **File → New → Project**
@@ -25,7 +25,7 @@
 
 ---
 
-## Step 2 — Replace the Template Files
+## Step 2 - Replace the Template Files
 
 Xcode creates default `ContentView.swift` and `ApexApp.swift`. Replace them:
 
@@ -39,7 +39,7 @@ Xcode creates default `ContentView.swift` and `ApexApp.swift`. Replace them:
 
 ---
 
-## Step 3 — Add Capabilities
+## Step 3 - Add Capabilities
 
 ### HealthKit
 1. Click on your project in the Navigator (top item)
@@ -72,22 +72,22 @@ To add them in Xcode:
 
 ---
 
-## Step 4 — Get Your Claude API Key
+## Step 4 - Get Your Google AI API Key
 
-1. Go to **console.anthropic.com**
+1. Go to **aistudio.google.com/apikey**
 2. Sign up / log in (free account works)
-3. Navigate to **API Keys → Create Key**
-4. Copy the key (starts with `sk-ant-...`)
+3. Click **Create API key**
+4. Copy the key (starts with `AIza`)
 
 ---
 
-## Step 5 — Build & Run
+## Step 5 - Build & Run
 
 1. Select your iPhone as the target device (plug in via USB or use wireless)
 2. Press **⌘R** to build and run
 3. On first launch, tap **Settings** (gear icon at top right of Progress tab)
-4. Enter your name and paste your Claude API key
-5. Go back to **Today** tab — it will ask for HealthKit permissions
+4. Enter your name and paste your Google AI API key
+5. Go back to **Today** tab - it will ask for HealthKit permissions
 6. Allow all permissions for the best experience
 
 ---
@@ -98,9 +98,9 @@ To add them in Xcode:
 |-----|----------|
 | **Today** | Apple Watch rings, sleep/HRV/HR stats, AI-generated daily plan, today's summary |
 | **Workouts** | Log tennis (scores, drills, court) + gym (exercises with YouTube links) |
-| **Nutrition** | Snap a meal photo → Claude estimates calories + macros instantly |
+| **Nutrition** | Snap a meal photo → the AI estimates calories + macros instantly |
 | **Progress** | XP level, streaks, all-time stats, achievements grid |
-| **Coach** | Chat with Claude to adjust your plan or ask fitness/nutrition questions |
+| **Coach** | Chat with the AI coach to adjust your plan or ask fitness/nutrition questions |
 
 ---
 
@@ -127,7 +127,7 @@ To add them in Xcode:
 - Sync your Apple Watch so data is on iPhone
 
 **Meal analysis not working:**
-- Check your Claude API key in Settings
+- Check your Google AI API key in Settings
 - Make sure you have API credits (free tier has a limit)
 - Try a clearer photo with good lighting
 
@@ -139,7 +139,7 @@ To add them in Xcode:
 
 ## Future Features to Add
 - [ ] Workout templates (push/pull/legs split)
-- [ ] Weekly review with Claude
+- [ ] Weekly AI review
 - [ ] Apple Watch companion app
 - [ ] Run tracking with GPS
 - [ ] Water intake tracking
