@@ -1,0 +1,55 @@
+name: Apex
+options:
+  bundleIdPrefix: com.lakshya
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""  # Fill in your Team ID after generating (Xcode → Signing & Capabilities)
+
+targets:
+  Apex:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Apex
+        excludes:
+          - "**/*.md"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lakshya.apex
+        INFOPLIST_FILE: Apex/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Apex/Apex.entitlements
+        ENABLE_PREVIEWS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+
+    entitlements:
+      path: Apex/Apex.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
+
+    info:
+      path: Apex/Info.plist
+      properties:
+        CFBundleDisplayName: Apex
+        NSHealthShareUsageDescription: "Apex reads your workouts, sleep, heart rate, and activity data to personalize your daily plan."
+        NSHealthUpdateUsageDescription: "Apex can save workouts to your Health app."
+        NSCameraUsageDescription: "Apex uses the camera to photograph your meals for calorie estimation."
+        NSPhotoLibraryUsageDescription: "Apex accesses your photo library to log meal photos."
+        NSCalendarsFullAccessUsageDescription: "Apex reads your calendar to include your schedule in personalized daily plans."
+        UILaunchStoryboardName: LaunchScreen
+        UIApplicationSupportsIndirectInputEvents: true
+        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}

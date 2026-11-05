@@ -1,0 +1,569 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06EC5E169933286D091F3C49 /* ApexCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */; };
+		086FE2027751C5327FB24975 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F454D4A5ED49249541497607 /* ContentView.swift */; };
+		08867D388A5DE37B1CEFC7C5 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDEE14B1460503750A7B368 /* CalendarService.swift */; };
+		0AFC92E45F64E13238E1F652 /* WorkoutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100BBF424DC3DB1F00A3780D /* WorkoutsView.swift */; };
+		0B382AE206169D1FDCC67970 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E4CDBE4D93590B49DEB57 /* ProgressView.swift */; };
+		149C90C77FAC93A08C0C86BE /* WorkoutScheduleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12980883739B1A0E91385918 /* WorkoutScheduleEditorView.swift */; };
+		1CDB4A0D0F074D21F4751909 /* FocusTimerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894695B03401DD49DC76CA73 /* FocusTimerService.swift */; };
+		24AF65DEA7E067429CD83026 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D172ECBAA552236C508936 /* UserProfile.swift */; };
+		294BF0BAC31C54B38B91B3A0 /* TennisLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5425EC54E9F3CFD4BAFB42E5 /* TennisLogView.swift */; };
+		29DC6E60E6BFD972B1B1E025 /* CoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539F055E67B89A39059217C0 /* CoachView.swift */; };
+		2B433A1AD9FD07A89C676858 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1CC40F7E074D1012E90B6E /* Achievement.swift */; };
+		2D887DED581355E152DBC9A3 /* MuscleHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB279B79196F68170121D471 /* MuscleHeatmapView.swift */; };
+		4A7AB7B08547DF09AA9126B3 /* ApexApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CA4A9F0892F09227121BBC /* ApexApp.swift */; };
+		4B0CA6F32FEE78FB0AC1B2C7 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9F0118318F02A530827C46 /* Project.swift */; };
+		4CB7BF1194C8D258171E0CFF /* GamificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FEF66B86D96A0B544A752F /* GamificationService.swift */; };
+		5097468F974F8F8984A0AB51 /* EveningCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E1308BEC56BDD3C642A9C7 /* EveningCheckInView.swift */; };
+		5302B6EEF60AF6D166B3D7BC /* ExerciseDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = C08A82C5BC8AD98DEBA5C0FC /* ExerciseDatabase.swift */; };
+		5E4EDB0249176B90AA33ADD9 /* GymExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E82C59A0BE8FE809257D9E4 /* GymExercise.swift */; };
+		6EC1D47933214402C55299BF /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C895330A048082A3D73E7D33 /* Constants.swift */; };
+		6F4A7296E367DA82D0322A38 /* MealCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84AF7EB5E73D55168804ADEB /* MealCameraView.swift */; };
+		6FC2A35194B1FA60949A5020 /* ActivityRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55171E2771529495745ECD6B /* ActivityRingsView.swift */; };
+		7F9DE8680BD7EEB33C95A301 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259CD2E298F9D3F7DA14BF4C /* FocusSession.swift */; };
+		90B5FEAB34725DA5CC2B8581 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D74E831027CBD45BFE359C0 /* Extensions.swift */; };
+		9EE1804D313024CC909FB671 /* FocusTimerCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF824F8EE0C29A6043CB42B6 /* FocusTimerCard.swift */; };
+		A0E914E868C36BD06BE0D17D /* GitHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC493EB28BFFD409F00AA6 /* GitHubService.swift */; };
+		A3BC392CF33F6A6751DC1593 /* MuscleGroupTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */; };
+		A584E28609BDD217A80E61B1 /* DailyPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 578BBD23F0FA422AB74E5EF4 /* DailyPlan.swift */; };
+		AAA14CB1206560601201601D /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27F88561590E1B3794330FB /* TodayView.swift */; };
+		B0CFFE768B94B0E069944EC4 /* EveningCheckIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */; };
+		B2F88A2F0AE92D10981B4BB5 /* NutritionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7357EA9A4D171B7855669B28 /* NutritionView.swift */; };
+		BE1DDFC1FB4ADF680B48CD86 /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2233CD1A9D8612F2FA8E2712 /* AchievementsView.swift */; };
+		BE2889311AB1CFA2A0DC8550 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1BA7047897CB5AADB4D2DB /* SettingsView.swift */; };
+		C1C90C2EC4AD4116085616A2 /* GymWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABC7E4D09A3039B623EC74B /* GymWorkoutView.swift */; };
+		C677135683D0A4676A594F29 /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3201E438E229D83003D213 /* WorkoutSession.swift */; };
+		CD5E18B75DC6407297BB3E35 /* MealEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940DAF87AF3C5AAF288D171D /* MealEntry.swift */; };
+		D73C30C1B46C94352E202A6A /* MorningCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC8449A72C5BD029BEE3C8 /* MorningCheckInView.swift */; };
+		E3D9D524ED5087357A65CBF5 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA7123ECF75EAB39CE9C0BF /* NotificationService.swift */; };
+		E672247A89A3FBDE60402932 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C048D0D2CC35A988E6B44B /* HealthKitService.swift */; };
+		E68597835288F4A76CB08219 /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5FE467FFBB47D8C7754B45 /* ExercisePickerView.swift */; };
+		E76F6AE51867670FF27D2630 /* WorkoutScheduleEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6E4D41DEEBADADD3078A01 /* WorkoutScheduleEntry.swift */; };
+		FCC1E87764427E7373DEF203 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29AC947F2226D7E67817FF3 /* ClaudeService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		08D172ECBAA552236C508936 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		0D74E831027CBD45BFE359C0 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		100BBF424DC3DB1F00A3780D /* WorkoutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutsView.swift; sourceTree = "<group>"; };
+		12980883739B1A0E91385918 /* WorkoutScheduleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutScheduleEditorView.swift; sourceTree = "<group>"; };
+		15C048D0D2CC35A988E6B44B /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		1E82C59A0BE8FE809257D9E4 /* GymExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymExercise.swift; sourceTree = "<group>"; };
+		21FEF66B86D96A0B544A752F /* GamificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationService.swift; sourceTree = "<group>"; };
+		2233CD1A9D8612F2FA8E2712 /* AchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
+		259CD2E298F9D3F7DA14BF4C /* FocusSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSession.swift; sourceTree = "<group>"; };
+		2ABC7E4D09A3039B623EC74B /* GymWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymWorkoutView.swift; sourceTree = "<group>"; };
+		2BFC493EB28BFFD409F00AA6 /* GitHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubService.swift; sourceTree = "<group>"; };
+		3EDEE14B1460503750A7B368 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		40181B3318A24968404E9078 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		481E4CDBE4D93590B49DEB57 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+		539F055E67B89A39059217C0 /* CoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachView.swift; sourceTree = "<group>"; };
+		5425EC54E9F3CFD4BAFB42E5 /* TennisLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TennisLogView.swift; sourceTree = "<group>"; };
+		55171E2771529495745ECD6B /* ActivityRingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityRingsView.swift; sourceTree = "<group>"; };
+		55DAD81B00BA688F089A40F3 /* Apex.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Apex.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		578BBD23F0FA422AB74E5EF4 /* DailyPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPlan.swift; sourceTree = "<group>"; };
+		5A1BA7047897CB5AADB4D2DB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7357EA9A4D171B7855669B28 /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
+		84AF7EB5E73D55168804ADEB /* MealCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCameraView.swift; sourceTree = "<group>"; };
+		894695B03401DD49DC76CA73 /* FocusTimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerService.swift; sourceTree = "<group>"; };
+		940DAF87AF3C5AAF288D171D /* MealEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEntry.swift; sourceTree = "<group>"; };
+		A29AC947F2226D7E67817FF3 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
+		AA6E4D41DEEBADADD3078A01 /* WorkoutScheduleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutScheduleEntry.swift; sourceTree = "<group>"; };
+		B2E1308BEC56BDD3C642A9C7 /* EveningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckInView.swift; sourceTree = "<group>"; };
+		B6CA4A9F0892F09227121BBC /* ApexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexApp.swift; sourceTree = "<group>"; };
+		B6CC8449A72C5BD029BEE3C8 /* MorningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInView.swift; sourceTree = "<group>"; };
+		BB5FE467FFBB47D8C7754B45 /* ExercisePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerView.swift; sourceTree = "<group>"; };
+		BF824F8EE0C29A6043CB42B6 /* FocusTimerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerCard.swift; sourceTree = "<group>"; };
+		C08A82C5BC8AD98DEBA5C0FC /* ExerciseDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseDatabase.swift; sourceTree = "<group>"; };
+		C895330A048082A3D73E7D33 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupTracker.swift; sourceTree = "<group>"; };
+		CBA7123ECF75EAB39CE9C0BF /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		DA3201E438E229D83003D213 /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
+		DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexCard.swift; sourceTree = "<group>"; };
+		E27F88561590E1B3794330FB /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		F0379D04E2967149700E8D3D /* Apex.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Apex.entitlements; sourceTree = "<group>"; };
+		F454D4A5ED49249541497607 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckIn.swift; sourceTree = "<group>"; };
+		FB279B79196F68170121D471 /* MuscleHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleHeatmapView.swift; sourceTree = "<group>"; };
+		FC1CC40F7E074D1012E90B6E /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
+		FE9F0118318F02A530827C46 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		02D57351AD679DD31FA933F7 /* Coach */ = {
+			isa = PBXGroup;
+			children = (
+				539F055E67B89A39059217C0 /* CoachView.swift */,
+			);
+			path = Coach;
+			sourceTree = "<group>";
+		};
+		0EA5F571CF37A85B89B2A7FA /* Evening */ = {
+			isa = PBXGroup;
+			children = (
+				B2E1308BEC56BDD3C642A9C7 /* EveningCheckInView.swift */,
+			);
+			path = Evening;
+			sourceTree = "<group>";
+		};
+		1B1DA67C24BDDF86376811A6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				55DAD81B00BA688F089A40F3 /* Apex.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1D2EAD354AF484B0A2FB2899 /* Workouts */ = {
+			isa = PBXGroup;
+			children = (
+				BB5FE467FFBB47D8C7754B45 /* ExercisePickerView.swift */,
+				2ABC7E4D09A3039B623EC74B /* GymWorkoutView.swift */,
+				5425EC54E9F3CFD4BAFB42E5 /* TennisLogView.swift */,
+				12980883739B1A0E91385918 /* WorkoutScheduleEditorView.swift */,
+				100BBF424DC3DB1F00A3780D /* WorkoutsView.swift */,
+			);
+			path = Workouts;
+			sourceTree = "<group>";
+		};
+		25CF137A9EE892EFEB622B74 /* Today */ = {
+			isa = PBXGroup;
+			children = (
+				55171E2771529495745ECD6B /* ActivityRingsView.swift */,
+				BF824F8EE0C29A6043CB42B6 /* FocusTimerCard.swift */,
+				E27F88561590E1B3794330FB /* TodayView.swift */,
+			);
+			path = Today;
+			sourceTree = "<group>";
+		};
+		25D4F999BA1869E6B65194E5 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				C08A82C5BC8AD98DEBA5C0FC /* ExerciseDatabase.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		36296C652D35D9F9A52061C6 = {
+			isa = PBXGroup;
+			children = (
+				6574DECFD41094F3BD0152A5 /* Apex */,
+				1B1DA67C24BDDF86376811A6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4B5F18E2179BF8ED82FCF5A3 /* Morning */ = {
+			isa = PBXGroup;
+			children = (
+				B6CC8449A72C5BD029BEE3C8 /* MorningCheckInView.swift */,
+			);
+			path = Morning;
+			sourceTree = "<group>";
+		};
+		4E1BC903125090F4E94FC5DE /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				C895330A048082A3D73E7D33 /* Constants.swift */,
+				0D74E831027CBD45BFE359C0 /* Extensions.swift */,
+				CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		559E385C6E39812EE3F21314 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FC1CC40F7E074D1012E90B6E /* Achievement.swift */,
+				578BBD23F0FA422AB74E5EF4 /* DailyPlan.swift */,
+				F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */,
+				259CD2E298F9D3F7DA14BF4C /* FocusSession.swift */,
+				1E82C59A0BE8FE809257D9E4 /* GymExercise.swift */,
+				940DAF87AF3C5AAF288D171D /* MealEntry.swift */,
+				FE9F0118318F02A530827C46 /* Project.swift */,
+				08D172ECBAA552236C508936 /* UserProfile.swift */,
+				AA6E4D41DEEBADADD3078A01 /* WorkoutScheduleEntry.swift */,
+				DA3201E438E229D83003D213 /* WorkoutSession.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		6574DECFD41094F3BD0152A5 /* Apex */ = {
+			isa = PBXGroup;
+			children = (
+				F0379D04E2967149700E8D3D /* Apex.entitlements */,
+				B6CA4A9F0892F09227121BBC /* ApexApp.swift */,
+				F454D4A5ED49249541497607 /* ContentView.swift */,
+				40181B3318A24968404E9078 /* Info.plist */,
+				25D4F999BA1869E6B65194E5 /* Data */,
+				559E385C6E39812EE3F21314 /* Models */,
+				D99AFF91A664777607B8998A /* Services */,
+				4E1BC903125090F4E94FC5DE /* Utils */,
+				A2F6CE58C5E46CECA14A4A13 /* Views */,
+			);
+			path = Apex;
+			sourceTree = "<group>";
+		};
+		665340B4AB18CE54A14380DA /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A2F6CE58C5E46CECA14A4A13 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				02D57351AD679DD31FA933F7 /* Coach */,
+				665340B4AB18CE54A14380DA /* Components */,
+				0EA5F571CF37A85B89B2A7FA /* Evening */,
+				4B5F18E2179BF8ED82FCF5A3 /* Morning */,
+				CEFA0455772AF6E4CFEE79FA /* Nutrition */,
+				B3C8B59DE4D583041ABC2CF1 /* Progress */,
+				A39FBDB966F1632DEED51ACE /* Settings */,
+				25CF137A9EE892EFEB622B74 /* Today */,
+				1D2EAD354AF484B0A2FB2899 /* Workouts */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A39FBDB966F1632DEED51ACE /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				5A1BA7047897CB5AADB4D2DB /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		B3C8B59DE4D583041ABC2CF1 /* Progress */ = {
+			isa = PBXGroup;
+			children = (
+				2233CD1A9D8612F2FA8E2712 /* AchievementsView.swift */,
+				FB279B79196F68170121D471 /* MuscleHeatmapView.swift */,
+				481E4CDBE4D93590B49DEB57 /* ProgressView.swift */,
+			);
+			path = Progress;
+			sourceTree = "<group>";
+		};
+		CEFA0455772AF6E4CFEE79FA /* Nutrition */ = {
+			isa = PBXGroup;
+			children = (
+				84AF7EB5E73D55168804ADEB /* MealCameraView.swift */,
+				7357EA9A4D171B7855669B28 /* NutritionView.swift */,
+			);
+			path = Nutrition;
+			sourceTree = "<group>";
+		};
+		D99AFF91A664777607B8998A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3EDEE14B1460503750A7B368 /* CalendarService.swift */,
+				A29AC947F2226D7E67817FF3 /* ClaudeService.swift */,
+				894695B03401DD49DC76CA73 /* FocusTimerService.swift */,
+				21FEF66B86D96A0B544A752F /* GamificationService.swift */,
+				2BFC493EB28BFFD409F00AA6 /* GitHubService.swift */,
+				15C048D0D2CC35A988E6B44B /* HealthKitService.swift */,
+				CBA7123ECF75EAB39CE9C0BF /* NotificationService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C3A61A3316FF0E5FFDB48BC5 /* Apex */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3CCB10E6493CA13231B7C1CA /* Build configuration list for PBXNativeTarget "Apex" */;
+			buildPhases = (
+				2DC01C96DF2AD4C879811D75 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Apex;
+			packageProductDependencies = (
+			);
+			productName = Apex;
+			productReference = 55DAD81B00BA688F089A40F3 /* Apex.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4E8EADB5E201ECDB1BDB1208 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					C3A61A3316FF0E5FFDB48BC5 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 656B6C57D869885DB6EDE491 /* Build configuration list for PBXProject "Apex" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 36296C652D35D9F9A52061C6;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1B1DA67C24BDDF86376811A6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C3A61A3316FF0E5FFDB48BC5 /* Apex */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2DC01C96DF2AD4C879811D75 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B433A1AD9FD07A89C676858 /* Achievement.swift in Sources */,
+				BE1DDFC1FB4ADF680B48CD86 /* AchievementsView.swift in Sources */,
+				6FC2A35194B1FA60949A5020 /* ActivityRingsView.swift in Sources */,
+				4A7AB7B08547DF09AA9126B3 /* ApexApp.swift in Sources */,
+				06EC5E169933286D091F3C49 /* ApexCard.swift in Sources */,
+				08867D388A5DE37B1CEFC7C5 /* CalendarService.swift in Sources */,
+				FCC1E87764427E7373DEF203 /* ClaudeService.swift in Sources */,
+				29DC6E60E6BFD972B1B1E025 /* CoachView.swift in Sources */,
+				6EC1D47933214402C55299BF /* Constants.swift in Sources */,
+				086FE2027751C5327FB24975 /* ContentView.swift in Sources */,
+				A584E28609BDD217A80E61B1 /* DailyPlan.swift in Sources */,
+				B0CFFE768B94B0E069944EC4 /* EveningCheckIn.swift in Sources */,
+				5097468F974F8F8984A0AB51 /* EveningCheckInView.swift in Sources */,
+				5302B6EEF60AF6D166B3D7BC /* ExerciseDatabase.swift in Sources */,
+				E68597835288F4A76CB08219 /* ExercisePickerView.swift in Sources */,
+				90B5FEAB34725DA5CC2B8581 /* Extensions.swift in Sources */,
+				7F9DE8680BD7EEB33C95A301 /* FocusSession.swift in Sources */,
+				9EE1804D313024CC909FB671 /* FocusTimerCard.swift in Sources */,
+				1CDB4A0D0F074D21F4751909 /* FocusTimerService.swift in Sources */,
+				4CB7BF1194C8D258171E0CFF /* GamificationService.swift in Sources */,
+				A0E914E868C36BD06BE0D17D /* GitHubService.swift in Sources */,
+				5E4EDB0249176B90AA33ADD9 /* GymExercise.swift in Sources */,
+				C1C90C2EC4AD4116085616A2 /* GymWorkoutView.swift in Sources */,
+				E672247A89A3FBDE60402932 /* HealthKitService.swift in Sources */,
+				6F4A7296E367DA82D0322A38 /* MealCameraView.swift in Sources */,
+				CD5E18B75DC6407297BB3E35 /* MealEntry.swift in Sources */,
+				D73C30C1B46C94352E202A6A /* MorningCheckInView.swift in Sources */,
+				A3BC392CF33F6A6751DC1593 /* MuscleGroupTracker.swift in Sources */,
+				2D887DED581355E152DBC9A3 /* MuscleHeatmapView.swift in Sources */,
+				E3D9D524ED5087357A65CBF5 /* NotificationService.swift in Sources */,
+				B2F88A2F0AE92D10981B4BB5 /* NutritionView.swift in Sources */,
+				0B382AE206169D1FDCC67970 /* ProgressView.swift in Sources */,
+				4B0CA6F32FEE78FB0AC1B2C7 /* Project.swift in Sources */,
+				BE2889311AB1CFA2A0DC8550 /* SettingsView.swift in Sources */,
+				294BF0BAC31C54B38B91B3A0 /* TennisLogView.swift in Sources */,
+				AAA14CB1206560601201601D /* TodayView.swift in Sources */,
+				24AF65DEA7E067429CD83026 /* UserProfile.swift in Sources */,
+				149C90C77FAC93A08C0C86BE /* WorkoutScheduleEditorView.swift in Sources */,
+				E76F6AE51867670FF27D2630 /* WorkoutScheduleEntry.swift in Sources */,
+				C677135683D0A4676A594F29 /* WorkoutSession.swift in Sources */,
+				0AFC92E45F64E13238E1F652 /* WorkoutsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4FBD0A8CD0703526858964DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Apex/Apex.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Apex/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lakshya.apex;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5C71E832ABEAD9638ACBFAB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		6D07B4102E60D4E9E196A96F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Apex/Apex.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Apex/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lakshya.apex;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		781CDDDE80B49602541A4B9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3CCB10E6493CA13231B7C1CA /* Build configuration list for PBXNativeTarget "Apex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4FBD0A8CD0703526858964DE /* Debug */,
+				6D07B4102E60D4E9E196A96F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		656B6C57D869885DB6EDE491 /* Build configuration list for PBXProject "Apex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5C71E832ABEAD9638ACBFAB9 /* Debug */,
+				781CDDDE80B49602541A4B9E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4E8EADB5E201ECDB1BDB1208 /* Project object */;
+}

@@ -1,0 +1,261 @@
+import SwiftUI
+import SwiftData
+
+struct ApexProgressView: View {
+    @Query private var profiles: [UserProfile]
+    @Query(sort: \WorkoutSession.date, order: .reverse) private var workouts: [WorkoutSession]
+    @Query(sort: \MealEntry.date, order: .reverse) private var meals: [MealEntry]
+    @Query private var achievements: [Achievement]
+
+    private var profile: UserProfile? { profiles.first }
+    private var unlockedCount: Int { achievements.filter(\.isUnlocked).count }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                ApexColor.background.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Level Card
+                        levelCard
+                            .padding(.horizontal)
+
+                        // Streaks
+                        streaksSection
+                            .padding(.horizontal)
+
+                        // All-Time Stats
+                        statsSection
+                            .padding(.horizontal)
+
+                        // Workout Breakdown
+                        workoutBreakdownSection
+                            .padding(.horizontal)
+
+                        // Muscles Worked
+                        NavigationLink(destination: MuscleHeatmapView()) {
+                            HStack {
+                                Label("Muscles Worked", systemImage: "figure.arms.open")
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(ApexColor.accent)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(ApexColor.textSecondary)
+                            }
+                        }
+                        .padding(16)
+                        .background(ApexColor.accent.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(ApexColor.accent.opacity(0.3), lineWidth: 1))
+                        .padding(.horizontal)
+
+                        // Achievements Preview
+                        NavigationLink(destination: AchievementsView()) {
+                            HStack {
+                                Label("Achievements", systemImage: "trophy.fill")
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(ApexColor.warning)
+                                Spacer()
+                                Text("\(unlockedCount)/\(achievements.count)")
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(ApexColor.warning)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(ApexColor.textSecondary)
+                            }
+                        }
+                        .padding(16)
+                        .background(ApexColor.warning.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(ApexColor.warning.opacity(0.3), lineWidth: 1))
+                        .padding(.horizontal)
+
+                        Spacer(minLength: 32)
+                    }
+                    .padding(.top, 8)
+                }
+            }
+            .navigationTitle("Progress")
+            .preferredColorScheme(.dark)
+        }
+    }
+
+    // MARK: - Level Card
+
+    private var levelCard: some View {
+        let level = profile?.level ?? 1
+        let xp = profile?.xpPoints ?? 0
+        let progress = profile?.levelProgress ?? 0
+        let toNext = profile?.xpForNextLevel ?? 0
+
+        return VStack(spacing: 16) {
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("LEVEL")
+                        .font(.caption.bold())
+                        .foregroundStyle(ApexColor.textSecondary)
+                        .tracking(2)
+                    Text("\(level)")
+                        .font(.system(size: 64, weight: .black))
+                        .foregroundStyle(ApexColor.accent)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(xp.formatted()) XP")
+                        .font(.title2.bold())
+                        .foregroundStyle(ApexColor.textPrimary)
+                    if toNext > 0 {
+                        Text("\(toNext) XP to Level \(level + 1)")
+                            .font(.caption)
+                            .foregroundStyle(ApexColor.textSecondary)
+                    } else {
+                        Text("MAX LEVEL")
+                            .font(.caption.bold())
+                            .foregroundStyle(ApexColor.warning)
+                    }
+                }
+            }
+
+            // Progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(ApexColor.cardBg2)
+                        .frame(height: 12)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(LinearGradient(
+                            colors: [ApexColor.accent, ApexColor.accentCyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ))
+                        .frame(width: geo.size.width * progress, height: 12)
+                        .animation(.easeInOut(duration: 1.0), value: progress)
+                }
+            }
+            .frame(height: 12)
+        }
+        .apexCard()
+    }
+
+    // MARK: - Streaks
+
+    private var streaksSection: some View {
+        HStack(spacing: 12) {
+            streakCard(
+                label: "Workout Streak",
+                value: profile?.workoutStreak ?? 0,
+                icon: "flame.fill",
+                color: ApexColor.danger
+            )
+            streakCard(
+                label: "Meal Streak",
+                value: profile?.mealStreak ?? 0,
+                icon: "leaf.fill",
+                color: ApexColor.success
+            )
+        }
+    }
+
+    private func streakCard(label: String, value: Int, icon: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
+            Text("\(value)")
+                .font(.system(size: 36, weight: .black))
+                .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
+            Text("day\(value == 1 ? "" : "s")")
+                .font(.caption)
+                .foregroundStyle(ApexColor.textSecondary)
+            Text(label)
+                .font(.caption2.bold())
+                .foregroundStyle(ApexColor.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .background(value > 0 ? color.opacity(0.1) : ApexColor.cardBg)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(value > 0 ? color.opacity(0.3) : Color.clear, lineWidth: 1)
+        )
+    }
+
+    // MARK: - All-Time Stats
+
+    private var statsSection: some View {
+        ApexSectionCard(title: "All-Time Stats", systemImage: "chart.bar.fill", accentColor: ApexColor.accentCyan) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                statItem(label: "Workouts",  value: "\(workouts.count)",         color: ApexColor.accent)
+                statItem(label: "Tennis",    value: "\(tennisCount)",            color: ApexColor.tennis)
+                statItem(label: "Gym",       value: "\(gymCount)",               color: ApexColor.accent)
+                statItem(label: "Meals",     value: "\(meals.count)",            color: ApexColor.success)
+                statItem(label: "Calories",  value: "\(totalCaloriesAll)k",      color: ApexColor.danger)
+                statItem(label: "Hrs Logged",value: "\(totalHoursLogged)",       color: ApexColor.accentCyan)
+            }
+        }
+    }
+
+    private func statItem(label: String, value: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.headline.bold())
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(ApexColor.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(ApexColor.cardBg2)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    // MARK: - Workout Breakdown
+
+    private var workoutBreakdownSection: some View {
+        ApexSectionCard(title: "Workout Types", systemImage: "chart.pie.fill", accentColor: ApexColor.accent) {
+            VStack(spacing: 10) {
+                typeBar(type: .tennis, count: tennisCount, total: workouts.count, color: ApexColor.tennis)
+                typeBar(type: .gym,    count: gymCount,    total: workouts.count, color: ApexColor.accent)
+                typeBar(type: .run,    count: runCount,    total: workouts.count, color: ApexColor.accentCyan)
+            }
+        }
+    }
+
+    private func typeBar(type: WorkoutType, count: Int, total: Int, color: Color) -> some View {
+        let fraction = total > 0 ? Double(count) / Double(total) : 0
+        return HStack(spacing: 10) {
+            Image(systemName: type.systemImage)
+                .font(.caption)
+                .foregroundStyle(color)
+                .frame(width: 20)
+            Text(type.rawValue)
+                .font(.caption.bold())
+                .foregroundStyle(ApexColor.textSecondary)
+                .frame(width: 52, alignment: .leading)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4).fill(ApexColor.cardBg2).frame(height: 8)
+                    RoundedRectangle(cornerRadius: 4).fill(color).frame(width: geo.size.width * fraction, height: 8)
+                }
+            }
+            .frame(height: 8)
+            Text("\(count)")
+                .font(.caption.bold())
+                .foregroundStyle(ApexColor.textPrimary)
+                .frame(width: 28, alignment: .trailing)
+        }
+    }
+
+    // MARK: - Computed
+
+    private var tennisCount: Int { workouts.filter { $0.type == .tennis }.count }
+    private var gymCount: Int    { workouts.filter { $0.type == .gym }.count }
+    private var runCount: Int    { workouts.filter { $0.type == .run }.count }
+    private var totalCaloriesAll: Int { workouts.reduce(0) { $0 + $1.caloriesBurned } / 1000 }
+    private var totalHoursLogged: Int { workouts.reduce(0) { $0 + $1.durationMinutes } / 60 }
+}
