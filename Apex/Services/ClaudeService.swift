@@ -184,6 +184,7 @@ final class ClaudeService {
     private(set) var isLocalAIAvailable: Bool = false
 
     private let geminiModel = "gemini-2.5-flash"
+    static let ollamaReasoningHeadroom = 1200
     private var baseURL: String {
         "https://generativelanguage.googleapis.com/v1beta/models/\(geminiModel):generateContent"
     }
@@ -512,7 +513,8 @@ final class ClaudeService {
             messages: allMessages,
             stream: false,
             format: forceJSON ? "json" : nil,
-            options: OllamaOptions(numPredict: maxTokens)
+            // Reasoning models (gpt-oss) spend tokens thinking before the visible reply; without headroom the reply comes back empty.
+            options: OllamaOptions(numPredict: maxTokens + Self.ollamaReasoningHeadroom)
         )
 
         var req = URLRequest(url: url, timeoutInterval: 90)

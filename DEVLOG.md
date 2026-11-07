@@ -257,6 +257,7 @@ The reference app used a fully anatomical illustration with separately-colored q
 - Gemini key moved from the URL to a request header. Gemini calls require an explicit opt-in toggle in Settings. Offline, quota and Health failures show messages.
 - 7 and 30 day streak bonuses are awarded. The old sleepWeek achievement became "Week of Mornings" (7 completed check-ins in a row).
 - AI context says "not reported" when there is no check-in instead of a default energy of 3.
+- Ollama requests now add 1,200 tokens of headroom for reasoning models. Without it `gpt-oss:20b` returned an empty reply at the 300 token meal limit.
 - 20 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---

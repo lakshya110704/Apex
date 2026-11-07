@@ -17,7 +17,7 @@ Also: morning and evening check-ins, XP for logging, a local notification at 8pm
 ## AI services
 
 - **Gemini** (`gemini-2.5-flash`, Google AI REST API). Needs your own API key, entered in Settings. Used for meal analysis, daily plan and coach chat. Meal photos and the health/context summary are sent to Google when you use these features.
-- **Ollama (optional)**. If you enter a LAN address in Settings and it responds, text requests go to your own Ollama server instead. Meal photo analysis always uses Gemini.
+- **Ollama (optional)**. If you enter a LAN address in Settings and it responds, text requests go to your own Ollama server instead. Meal photo analysis always uses Gemini. Ollama requests get 1,200 extra tokens so reasoning models such as `gpt-oss:20b` do not use the whole limit on hidden thinking and return an empty reply. I checked this with the same request shape sent by `curl` to `gpt-oss:20b` (valid JSON back at a 1,500 token limit, empty reply at 300). I have not run the app itself against an Ollama server.
 - The class is named `ClaudeService` for historical reasons. It does not call Anthropic.
 
 Gemini calls are off until you turn on "Share data with Google Gemini" in Settings. The key is stored in `UserDefaults` on the device (not the Keychain), is sent in a request header, and is never part of the source.
