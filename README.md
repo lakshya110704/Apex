@@ -19,11 +19,12 @@ Also: morning and evening check-ins, XP for logging, a local notification at 8pm
 <p>
   <img src="docs/screenshots/today.png" width="190" alt="Today tab with the no Health data notice">
   <img src="docs/screenshots/workouts.png" width="190" alt="Workouts tab with muscle recovery">
+  <img src="docs/screenshots/nutrition.png" width="190" alt="Nutrition tab">
   <img src="docs/screenshots/progress.png" width="190" alt="Progress tab">
 </p>
 <p>
   <img src="docs/screenshots/muscles-worked.png" width="190" alt="Muscles Worked heatmap">
-  <img src="docs/screenshots/coach.png" width="190" alt="Coach tab">
+  <img src="docs/screenshots/coach.png" width="190" alt="Coach tab showing No Data">
   <img src="docs/screenshots/settings.png" width="190" alt="Settings with the Gemini sharing switch">
 </p>
 
@@ -73,8 +74,7 @@ Add your name and API key in Settings on first launch.
 - No XP for completing the daily plan, closing rings or logging sleep.
 - The calorie and protein targets are rough rules (weight x 33 kcal, weight x 1.8 g), not a validated formula, and are 0 when Health has no weight.
 - The sleep score is a simple home-made formula from sleep hours and HRV.
-- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Progress, the Muscles Worked heatmap, Coach and Settings (including the Gemini sharing switch). Not seen: any Gemini or Ollama reply.
-- Known visual issues: on the Nutrition tab the "+25 XP" label in the Snap a Meal button wraps one character per line; the Coach banner says "Measured" even with no data, because it starts from a default energy level.
+- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Not seen: any Gemini or Ollama reply.
 - Not yet done for an App Store release: a hosted privacy policy URL (the text is in PRIVACY.md), a support URL (the GitHub issues page can serve), App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).

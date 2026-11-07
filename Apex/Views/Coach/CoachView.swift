@@ -30,10 +30,11 @@ struct CoachView: View {
     // MARK: - Coach Stance
 
     private enum CoachStance {
-        case fullSend, measured, recovery, rest
+        case noData, fullSend, measured, recovery, rest
 
         var label: String {
             switch self {
+            case .noData:    return "No Data"
             case .fullSend:  return "Full Send"
             case .measured:  return "Measured"
             case .recovery:  return "Recovery"
@@ -42,6 +43,7 @@ struct CoachView: View {
         }
         var icon: String {
             switch self {
+            case .noData:    return "questionmark.circle.fill"
             case .fullSend:  return "flame.fill"
             case .measured:  return "bolt.fill"
             case .recovery:  return "leaf.fill"
@@ -50,6 +52,7 @@ struct CoachView: View {
         }
         var color: Color {
             switch self {
+            case .noData:    return ApexColor.textSecondary
             case .fullSend:  return ApexColor.accent
             case .measured:  return ApexColor.accentCyan
             case .recovery:  return ApexColor.warning
@@ -58,6 +61,7 @@ struct CoachView: View {
         }
         var description: String {
             switch self {
+            case .noData:    return "Needs sleep or HRV data. Allow Health access and sync your Watch."
             case .fullSend:  return "HRV & sleep are strong. No excuses today."
             case .measured:  return "Train smart. Not your best day, not your worst."
             case .recovery:  return "Light work only. Body needs to rebuild."
@@ -71,6 +75,9 @@ struct CoachView: View {
         let avgHRV = healthKit.weeklyAvgHRV
         let sleepScore = todayCheckIn?.sleepScore ?? Int(healthKit.sleepHoursLast / 8.0 * 100)
         let energy = todayCheckIn?.energyLevel ?? 3
+
+        // No sleep or HRV reading at all: don't present a default as a measurement.
+        if hrv == 0 && sleepScore == 0 { return .noData }
 
         let hrvGood = avgHRV > 0 ? hrv >= avgHRV * 0.9 : true
         let sleepGood = sleepScore >= 65

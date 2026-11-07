@@ -46,10 +46,12 @@ struct NutritionView: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: "camera.fill")
                                         .font(.subheadline.bold())
-                                    Text("Snap a Meal")
-                                        .font(.subheadline.bold())
-                                    Spacer()
-                                    XPBadge(amount: XPValues.logMeal)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Snap a Meal")
+                                            .font(.subheadline.bold())
+                                        XPBadge(amount: XPValues.logMeal)
+                                    }
+                                    Spacer(minLength: 0)
                                 }
                                 .foregroundStyle(ApexColor.background)
                                 .padding(14)
