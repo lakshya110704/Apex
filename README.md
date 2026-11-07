@@ -62,6 +62,10 @@ Add your name and API key in Settings on first launch.
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).
 
+## Privacy
+
+See [PRIVACY.md](PRIVACY.md).
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
