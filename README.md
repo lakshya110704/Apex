@@ -58,3 +58,7 @@ Add your name and API key in Settings on first launch.
 - One achievement (`sleepWeek`) is defined but never awarded.
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE).
