@@ -116,7 +116,7 @@ To add them in Xcode:
 | 30-day workout streak (once, when reached) | +1,000 XP |
 | Unlock achievement | +25 to +750 XP (per achievement) |
 
-Not awarded: completing the daily plan, closing activity rings and logging sleep. The values exist in `Constants.swift` but nothing calls them.
+There is no XP for completing the daily plan, closing activity rings or logging sleep.
 
 ---
 

@@ -24,9 +24,6 @@ enum XPValues {
     static let logGymWorkout    = 60
     static let logTennisSession = 80
     static let logMeal          = 25
-    static let completeDailyPlan = 120
-    static let hitActivityRing  = 30   // per ring
-    static let logSleep         = 20
     static let sevenDayStreak   = 250
     static let thirtyDayStreak  = 1000
 }
