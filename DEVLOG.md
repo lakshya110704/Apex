@@ -267,7 +267,8 @@ The reference app used a fully anatomical illustration with separately-colored q
 - Replaced the capsule muscle figure with an original anatomical figure (pure CoreGraphics shapes, front and back).
 - Heatmap scale is now blue to red; 0 sets stays neutral.
 - AI providers: Gemini, OpenAI, Claude and Local, each with its own key, model and consent. One request builder and parser per provider, tested offline.
-- 24 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
+- Today is now a dashboard (next-up hero with a snapping plan carousel, quick actions, tiles that open sheets). Motion rules used: feedback is immediate, springs can be interrupted, Reduce Motion is respected, haptics only on selection. Other tabs still use the older list layout.
+- 35 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
 

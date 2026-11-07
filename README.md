@@ -6,7 +6,7 @@ A native iOS app that combines Apple Watch health data, workout and meal logging
 
 | Tab | What the code does |
 |---|---|
-| **Today** | Activity rings, sleep / HRV / resting HR, AI-generated daily plan shown as a timeline, focus timer, today's calendar events, recent workouts and meals |
+| **Today** | A dashboard: the next block of your day with a swipeable plan, quick actions (log workout, snap a meal, ask the coach), tiles for activity, recovery, nutrition and training that open detail sheets, the focus timer and your next calendar event |
 | **Workouts** | Log tennis and gym sessions, import workouts from Apple Watch, weekly planned vs actual schedule, muscle recovery list |
 | **Nutrition** | Log a meal from a photo or a text description and get calorie and macro estimates from the AI |
 | **Progress** | XP and level, workout and meal streaks, all-time stats, achievements, "Muscles Worked" heatmap (sets per muscle group) |
@@ -39,7 +39,7 @@ Light mode (the app follows the system setting):
   <img src="docs/screenshots/muscles-worked-light.png" width="190" alt="Muscles Worked heatmap, light mode">
 </p>
 
-Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. The Workouts, Progress and Muscles Worked screens show one logged gym workout: bench press, pull-up and back squat, 3 sets each. The body figure on the heatmap is placeholder art built from simple shapes.
+Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. The Workouts, Progress and Muscles Worked screens show one logged gym workout: bench press, pull-up and back squat, 3 sets each. The plan on the Today screenshots is a hand-written sample, not AI output, because no API key was set. The Settings screenshot shows the provider picker with OpenAI selected and no key.
 
 ## AI services
 
@@ -89,12 +89,12 @@ Add your name, then choose an AI provider and add its key in Settings.
 ## Status
 
 - Builds with Xcode 27.2 for the iOS 18.0 simulator.
-- Unit tests: 34 run, 34 pass, 0 fail (iOS 18.0 simulator). Run them ad-hoc signed, because the Keychain test needs an entitlement that unsigned builds lack: `xcodebuild test -project Apex.xcodeproj -scheme Apex -destination 'platform=iOS Simulator,name=<your simulator>' CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO`. With `CODE_SIGNING_ALLOWED=NO` the Keychain test fails (last unsigned run: 21 tests, 4 failures, all that test). They cover the data and logic layer only: levels, streaks, XP, achievements, muscle tracker, exercise list, meal JSON parsing, AI consent gate, error messages, Keychain storage and migration, and missing-Health-data handling, that every Health type the app reads is in the permission list, the muscle figure regions, the heat scale, and each AI provider's request and reply handling (offline).
+- Unit tests: 35 run, 35 pass, 0 fail (iOS 18.0 simulator). Run them ad-hoc signed, because the Keychain test needs an entitlement that unsigned builds lack: `xcodebuild test -project Apex.xcodeproj -scheme Apex -destination 'platform=iOS Simulator,name=<your simulator>' CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO`. With `CODE_SIGNING_ALLOWED=NO` the Keychain test fails (last unsigned run: 21 tests, 4 failures, all that test). They cover the data and logic layer only: levels, streaks, XP, achievements, muscle tracker, exercise list, meal JSON parsing, AI consent gate, error messages, Keychain storage and migration, and missing-Health-data handling, that every Health type the app reads is in the permission list, the muscle figure regions, the heat scale, each AI provider's request and reply handling (offline), and which plan block is next.
 - Not covered by tests and not verified by me: HealthKit and Apple Watch data, the 8pm notification, camera, calendar, GitHub, and real calls to Gemini, OpenAI, Claude or Ollama. These need a device, a key or a local server.
 - No XP for completing the daily plan, closing rings or logging sleep.
 - The calorie and protein targets are rough rules (weight x 33 kcal, weight x 1.8 g), not a validated formula, and are 0 when Health has no weight.
 - The sleep score is a simple home-made formula from sleep hours and HRV.
-- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Both light and dark mode were checked on Today, Progress, Muscles Worked, Coach and Settings; the other screens (check-ins, workout logging sheets, camera) were not checked in light mode. Not seen: any real AI reply.
+- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Both light and dark mode were checked on Today, Progress, Muscles Worked, Coach and Settings; the other screens (check-ins, workout logging sheets, camera) were not checked in light mode. The Today dashboard, the new figure, the blue to red heat scale and the provider picker were seen in both modes except Settings, which was seen in dark mode. Not seen: any real AI reply.
 - Not yet done for an App Store release: a hosted privacy policy URL (the text is in PRIVACY.md), a support URL (the GitHub issues page can serve), App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).
