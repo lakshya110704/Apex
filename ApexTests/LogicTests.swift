@@ -1,6 +1,7 @@
 import XCTest
 import SwiftData
 import HealthKit
+import SwiftUI
 @testable import Apex
 
 @MainActor
@@ -313,6 +314,24 @@ final class LogicTests: XCTestCase {
                 ? [.chest, .shoulders, .biceps, .core, .legs]
                 : [.back, .shoulders, .triceps, .legs]
             XCTAssertEqual(groups, expected, "\(side) shows the wrong muscle groups")
+        }
+    }
+
+    // MARK: Heat scale
+
+    func testHeatScaleGoesFromBlueToRed() {
+        func rgb(_ c: Color) -> (r: CGFloat, g: CGFloat, b: CGFloat) {
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            UIColor(c).getRed(&r, green: &g, blue: &b, alpha: &a)
+            return (r, g, b)
+        }
+        for scheme in [ColorScheme.light, .dark] {
+            let low = rgb(MuscleGroupTracker.heatColor(sets: 1, scheme: scheme))
+            let high = rgb(MuscleGroupTracker.heatColor(sets: 10, scheme: scheme))
+            XCTAssertGreaterThan(low.b, low.r, "1 set should be blue")
+            XCTAssertGreaterThan(high.r, high.b, "10 sets should be red")
+            XCTAssertEqual(MuscleGroupTracker.heatColor(sets: 0, scheme: scheme), MuscleGroupTracker.coolColor(scheme))
+            XCTAssertEqual(MuscleGroupTracker.heatColor(sets: 25, scheme: scheme), MuscleGroupTracker.heatColor(sets: 10, scheme: scheme))
         }
     }
 }

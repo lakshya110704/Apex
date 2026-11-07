@@ -103,11 +103,21 @@ enum MuscleGroupTracker {
     }
 
     static let maxHeatSets = 10
+    /// 0 sets: not worked.
     static func coolColor(_ scheme: ColorScheme) -> Color {
         scheme == .dark ? Color(red: 0.17, green: 0.19, blue: 0.23) : Color(red: 0.86, green: 0.88, blue: 0.91)
     }
-    static func hotColor(_ scheme: ColorScheme) -> Color {
+    /// 1 set: blue.
+    static func lowColor(_ scheme: ColorScheme) -> Color {
         scheme == .dark ? Color(red: 0.30, green: 0.55, blue: 1.0) : Color(red: 0.04, green: 0.36, blue: 1.0)
+    }
+    /// Halfway: violet, so the blue to red blend stays vivid.
+    static func midColor(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.66, green: 0.42, blue: 1.0) : Color(red: 0.50, green: 0.24, blue: 0.90)
+    }
+    /// 10 sets or more: red.
+    static func hotColor(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 1.0, green: 0.36, blue: 0.38) : Color(red: 0.90, green: 0.20, blue: 0.27)
     }
 
     /// Total sets logged per muscle group within the given range.
@@ -124,7 +134,10 @@ enum MuscleGroupTracker {
     }
 
     static func heatColor(sets: Int, scheme: ColorScheme) -> Color {
-        let t = min(Double(sets) / Double(maxHeatSets), 1.0)
-        return .lerp(coolColor(scheme), hotColor(scheme), t)
+        guard sets > 0 else { return coolColor(scheme) }
+        let t = min(Double(sets - 1) / Double(maxHeatSets - 1), 1.0)
+        return t < 0.5
+            ? .lerp(lowColor(scheme), midColor(scheme), t * 2)
+            : .lerp(midColor(scheme), hotColor(scheme), (t - 0.5) * 2)
     }
 }

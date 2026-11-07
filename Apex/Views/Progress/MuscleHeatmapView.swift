@@ -65,15 +65,20 @@ struct MuscleHeatmapView: View {
 
     private var legend: some View {
         VStack(spacing: 6) {
-            LinearGradient(
-                colors: [MuscleGroupTracker.coolColor(scheme), MuscleGroupTracker.hotColor(scheme)],
-                startPoint: .leading, endPoint: .trailing
-            )
-            .frame(height: 8)
-            .clipShape(Capsule())
+            HStack(spacing: 8) {
+                Circle().fill(MuscleGroupTracker.coolColor(scheme)).frame(width: 10, height: 10)
+                LinearGradient(
+                    colors: [MuscleGroupTracker.lowColor(scheme), MuscleGroupTracker.midColor(scheme), MuscleGroupTracker.hotColor(scheme)],
+                    startPoint: .leading, endPoint: .trailing
+                )
+                .frame(height: 8)
+                .clipShape(Capsule())
+            }
 
             HStack {
-                Text("0").font(.caption2).foregroundStyle(ApexColor.textSecondary)
+                Text("0 (not worked)").font(.caption2).foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                Text("1 set").font(.caption2).foregroundStyle(ApexColor.textSecondary)
                 Spacer()
                 Text("\(MuscleGroupTracker.maxHeatSets)+ sets").font(.caption2).foregroundStyle(ApexColor.textSecondary)
             }
