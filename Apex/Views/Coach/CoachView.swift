@@ -125,6 +125,11 @@ struct CoachView: View {
                         }
                     }
 
+                    Text("AI coaching based on your logged data. Not medical advice.")
+                        .font(.caption2)
+                        .foregroundStyle(ApexColor.textSecondary)
+                        .padding(.bottom, 4)
+
                     // Input bar
                     inputBar
                 }

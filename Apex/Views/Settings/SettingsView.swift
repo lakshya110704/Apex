@@ -58,6 +58,22 @@ struct SettingsView: View {
                             .foregroundStyle(ApexColor.textSecondary)
                     }
 
+                    // AI data sharing
+                    Section {
+                        Toggle("Share data with Google Gemini", isOn: Binding(
+                            get: { claude.aiConsentGiven },
+                            set: { claude.setAIConsent($0) }
+                        ))
+                        .foregroundStyle(ApexColor.textPrimary)
+                        .tint(ApexColor.accent)
+                        .listRowBackground(ApexColor.cardBg)
+                    } header: {
+                        Text("AI data sharing").foregroundStyle(ApexColor.textSecondary)
+                    } footer: {
+                        Text("When on, your health and activity summary, calendar event titles, meal photos and chat messages are sent to Google's Gemini API using your own key. Off by default. A local Ollama server does not send data to Google. AI output is an estimate, not medical or dietary advice.")
+                            .foregroundStyle(ApexColor.textSecondary)
+                    }
+
                     // API Key Section
                     Section {
                         VStack(alignment: .leading, spacing: 8) {

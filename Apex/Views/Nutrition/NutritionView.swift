@@ -86,6 +86,11 @@ struct NutritionView: View {
                                 .padding(.horizontal)
                         }
 
+                        Text("Calories and macros are AI estimates, not medical or dietary advice.")
+                            .font(.caption2)
+                            .foregroundStyle(ApexColor.textSecondary)
+                            .padding(.horizontal)
+
                         Spacer(minLength: 32)
                     }
                     .padding(.top, 8)

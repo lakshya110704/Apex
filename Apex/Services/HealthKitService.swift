@@ -6,6 +6,7 @@ import Observation
 final class HealthKitService {
 
     var isAuthorized = false
+    var healthNotice: String?
     var todaySteps: Int = 0
     var todayActiveCalories: Double = 0
     var todayExerciseMinutes: Double = 0
@@ -35,7 +36,10 @@ final class HealthKitService {
     // MARK: - Authorization
 
     func requestAuthorization() async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard HKHealthStore.isHealthDataAvailable() else {
+            healthNotice = "Health data isn't available on this device."
+            return
+        }
 
         let readTypes: Set<HKObjectType> = [
             HKObjectType.workoutType(),
@@ -58,8 +62,10 @@ final class HealthKitService {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             isAuthorized = true
             await fetchAllTodayData()
+            let noData = todaySteps == 0 && restingHeartRate == 0 && hrv == 0 && sleepHoursLast == 0
+            healthNotice = noData ? "No Health data found yet. If you declined access, turn it on in Settings > Health > Data Access & Devices > Apex." : nil
         } catch {
-            print("HealthKit auth error: \(error)")
+            healthNotice = "Couldn't connect to Health. Check Settings > Health > Data Access & Devices > Apex."
         }
     }
 

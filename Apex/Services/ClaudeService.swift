@@ -175,6 +175,7 @@ final class ClaudeService {
     var isCheckingLocalAI = false
 
     private(set) var apiKey: String = ""
+    private(set) var aiConsentGiven = false
 
     // Local AI (Ollama)
     private(set) var localAIHost: String = ""
@@ -193,6 +194,7 @@ final class ClaudeService {
     init() {
         let ud = UserDefaults.standard
         self.apiKey       = ud.string(forKey: UserDefaultsKeys.claudeAPIKey)  ?? ""
+        self.aiConsentGiven = ud.bool(forKey: UserDefaultsKeys.aiConsent)
         self.localAIHost  = ud.string(forKey: UserDefaultsKeys.localAIHost)   ?? ""
         self.localAIPort  = ud.integer(forKey: UserDefaultsKeys.localAIPort).nonZeroOr(11434)
         self.localAIModel = ud.string(forKey: UserDefaultsKeys.localAIModel)  ?? "llama3.2"
@@ -203,6 +205,11 @@ final class ClaudeService {
     func setAPIKey(_ key: String) {
         apiKey = key
         UserDefaults.standard.set(key, forKey: UserDefaultsKeys.claudeAPIKey)
+    }
+
+    func setAIConsent(_ given: Bool) {
+        aiConsentGiven = given
+        UserDefaults.standard.set(given, forKey: UserDefaultsKeys.aiConsent)
     }
 
     func setLocalAI(host: String, port: Int, model: String) {
@@ -526,20 +533,28 @@ final class ClaudeService {
 
     private func sendRequest(_ body: GeminiRequest) async throws -> String {
         guard apiKey.isNotEmpty else { throw ClaudeError.noAPIKey }
+        guard aiConsentGiven else { throw ClaudeError.consentRequired }
 
         isLoading = true
         defer { isLoading = false }
 
-        guard let url = URL(string: "\(baseURL)?key=\(apiKey)") else {
+        guard let url = URL(string: baseURL) else {
             throw ClaudeError.networkError
         }
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
         urlRequest.httpBody = try JSONEncoder().encode(body)
 
-        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: urlRequest)
+        } catch is URLError {
+            throw ClaudeError.networkError
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ClaudeError.networkError
@@ -558,6 +573,7 @@ final class ClaudeService {
 
 enum ClaudeError: LocalizedError {
     case noAPIKey
+    case consentRequired
     case imageConversionFailed
     case parseError
     case networkError
@@ -568,7 +584,9 @@ enum ClaudeError: LocalizedError {
         case .noAPIKey:              return "No API key. Add your Google AI key in Settings."
         case .imageConversionFailed: return "Failed to process image."
         case .parseError:            return "Could not parse the response."
-        case .networkError:          return "Network error."
+        case .consentRequired:       return "Turn on AI data sharing in Settings first. Your health summary and meal photos are sent to Google Gemini."
+        case .networkError:          return "No connection to the AI service. Check your internet and try again."
+        case .apiError(429, _):      return "AI quota reached. Wait a bit and try again."
         case .apiError(let code, _): return "API error \(code). Check your key in Settings."
         }
     }

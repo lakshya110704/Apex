@@ -182,4 +182,29 @@ final class LogicTests: XCTestCase {
         let meal = try ClaudeService().parseMealAnalysis(from: "{\"calories\":412.6}")
         XCTAssertEqual(meal.estimatedCalories, 413)
     }
+
+    // MARK: AI consent and errors
+
+    func testGeminiCallIsBlockedWithoutConsent() async {
+        let ai = ClaudeService()
+        let oldKey = ai.apiKey, oldConsent = ai.aiConsentGiven
+        defer { ai.setAPIKey(oldKey); ai.setAIConsent(oldConsent) }
+        ai.setAPIKey("test-key")
+        ai.setAIConsent(false)
+        do {
+            _ = try await ai.analyzeMealText("oats")
+            XCTFail("expected consentRequired")
+        } catch let error as ClaudeError {
+            guard case .consentRequired = error else { return XCTFail("got \(error)") }
+        } catch {
+            XCTFail("unexpected \(error)")
+        }
+    }
+
+    func testErrorMessages() {
+        XCTAssertEqual(ClaudeError.apiError(429, "").errorDescription, "AI quota reached. Wait a bit and try again.")
+        XCTAssertTrue(ClaudeError.apiError(400, "").errorDescription?.contains("400") == true)
+        XCTAssertTrue(ClaudeError.networkError.errorDescription?.contains("internet") == true)
+        XCTAssertTrue(ClaudeError.consentRequired.errorDescription?.contains("Settings") == true)
+    }
 }

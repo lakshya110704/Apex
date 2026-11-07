@@ -42,6 +42,17 @@ struct TodayView: View {
                         headerSection
                             .padding(.horizontal)
 
+                        if let notice = healthKit.healthNotice {
+                            Text(notice)
+                                .font(.caption)
+                                .foregroundStyle(ApexColor.warning)
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(ApexColor.warning.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.horizontal)
+                        }
+
                         // Today's Plan (top of the scroll — it's your day at a glance)
                         dailyPlanSection
                             .padding(.horizontal)

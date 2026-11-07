@@ -77,6 +77,7 @@ enum UserDefaultsKeys {
     static let localAIHost   = "apex_local_ai_host"
     static let localAIPort   = "apex_local_ai_port"
     static let localAIModel  = "apex_local_ai_model"
+    static let aiConsent     = "apex_ai_consent"
 }
 
 // MARK: - Achievement IDs
