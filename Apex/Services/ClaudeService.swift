@@ -194,7 +194,12 @@ final class ClaudeService {
 
     init() {
         let ud = UserDefaults.standard
-        self.apiKey       = ud.string(forKey: UserDefaultsKeys.claudeAPIKey)  ?? ""
+        self.apiKey       = KeychainStore.get(UserDefaultsKeys.claudeAPIKey) ?? ""
+        // One-time move of a key saved by earlier builds from UserDefaults into the Keychain.
+        if let legacy = ud.string(forKey: UserDefaultsKeys.claudeAPIKey), !legacy.isEmpty {
+            if apiKey.isEmpty, KeychainStore.set(legacy, for: UserDefaultsKeys.claudeAPIKey) { apiKey = legacy }
+            if KeychainStore.get(UserDefaultsKeys.claudeAPIKey) != nil { ud.removeObject(forKey: UserDefaultsKeys.claudeAPIKey) }
+        }
         self.aiConsentGiven = ud.bool(forKey: UserDefaultsKeys.aiConsent)
         self.localAIHost  = ud.string(forKey: UserDefaultsKeys.localAIHost)   ?? ""
         self.localAIPort  = ud.integer(forKey: UserDefaultsKeys.localAIPort).nonZeroOr(11434)
@@ -205,7 +210,7 @@ final class ClaudeService {
 
     func setAPIKey(_ key: String) {
         apiKey = key
-        UserDefaults.standard.set(key, forKey: UserDefaultsKeys.claudeAPIKey)
+        KeychainStore.set(key, for: UserDefaultsKeys.claudeAPIKey)
     }
 
     func setAIConsent(_ given: Bool) {

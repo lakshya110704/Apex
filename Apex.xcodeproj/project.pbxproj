@@ -30,6 +30,7 @@
 		6EC1D47933214402C55299BF /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C895330A048082A3D73E7D33 /* Constants.swift */; };
 		6F4A7296E367DA82D0322A38 /* MealCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84AF7EB5E73D55168804ADEB /* MealCameraView.swift */; };
 		6FC2A35194B1FA60949A5020 /* ActivityRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55171E2771529495745ECD6B /* ActivityRingsView.swift */; };
+		77061BCF6088C9FB330B9F9D /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2257CF2BCAC6CF6159CECD6 /* KeychainStore.swift */; };
 		7F9DE8680BD7EEB33C95A301 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259CD2E298F9D3F7DA14BF4C /* FocusSession.swift */; };
 		90B5FEAB34725DA5CC2B8581 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D74E831027CBD45BFE359C0 /* Extensions.swift */; };
 		9EE1804D313024CC909FB671 /* FocusTimerCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF824F8EE0C29A6043CB42B6 /* FocusTimerCard.swift */; };
@@ -107,6 +108,7 @@
 		E27F88561590E1B3794330FB /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		E6AF89A94049981707DF42E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F0379D04E2967149700E8D3D /* Apex.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Apex.entitlements; sourceTree = "<group>"; };
+		F2257CF2BCAC6CF6159CECD6 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		F454D4A5ED49249541497607 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckIn.swift; sourceTree = "<group>"; };
 		FB279B79196F68170121D471 /* MuscleHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleHeatmapView.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 			children = (
 				C895330A048082A3D73E7D33 /* Constants.swift */,
 				0D74E831027CBD45BFE359C0 /* Extensions.swift */,
+				F2257CF2BCAC6CF6159CECD6 /* KeychainStore.swift */,
 				CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */,
 			);
 			path = Utils;
@@ -430,6 +433,7 @@
 				5E4EDB0249176B90AA33ADD9 /* GymExercise.swift in Sources */,
 				C1C90C2EC4AD4116085616A2 /* GymWorkoutView.swift in Sources */,
 				E672247A89A3FBDE60402932 /* HealthKitService.swift in Sources */,
+				77061BCF6088C9FB330B9F9D /* KeychainStore.swift in Sources */,
 				6F4A7296E367DA82D0322A38 /* MealCameraView.swift in Sources */,
 				CD5E18B75DC6407297BB3E35 /* MealEntry.swift in Sources */,
 				D73C30C1B46C94352E202A6A /* MorningCheckInView.swift in Sources */,

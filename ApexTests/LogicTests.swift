@@ -237,4 +237,35 @@ final class LogicTests: XCTestCase {
         service.checkAchievements(profile: UserProfile(), context: context)
         XCTAssertTrue(service.pendingAchievements.contains { $0.achievementID == AchievementID.sleepWeek.rawValue })
     }
+
+    // MARK: Keychain
+
+    func testKeychainRoundTripAndDelete() {
+        let account = "apex_test_account"
+        defer { KeychainStore.set("", for: account) }
+        XCTAssertTrue(KeychainStore.set("secret-1", for: account))
+        XCTAssertEqual(KeychainStore.get(account), "secret-1")
+        XCTAssertTrue(KeychainStore.set("secret-2", for: account))   // overwrite
+        XCTAssertEqual(KeychainStore.get(account), "secret-2")
+        XCTAssertTrue(KeychainStore.set("", for: account))           // delete
+        XCTAssertNil(KeychainStore.get(account))
+    }
+
+    func testLegacyUserDefaultsKeyMovesToKeychain() {
+        let name = UserDefaultsKeys.claudeAPIKey
+        let ud = UserDefaults.standard
+        let oldKeychain = KeychainStore.get(name), oldDefaults = ud.string(forKey: name)
+        defer {
+            KeychainStore.set(oldKeychain ?? "", for: name)
+            if let oldDefaults { ud.set(oldDefaults, forKey: name) } else { ud.removeObject(forKey: name) }
+        }
+        KeychainStore.set("", for: name)
+        ud.set("legacy-key", forKey: name)
+
+        let ai = ClaudeService()
+
+        XCTAssertEqual(ai.apiKey, "legacy-key")
+        XCTAssertEqual(KeychainStore.get(name), "legacy-key")
+        XCTAssertNil(ud.string(forKey: name), "plaintext copy should be removed")
+    }
 }
