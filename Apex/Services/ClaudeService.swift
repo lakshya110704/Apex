@@ -297,7 +297,7 @@ final class ClaudeService {
 
         return MealAnalysis(
             description:       json["description"] as? String ?? "Unknown meal",
-            estimatedCalories: json["calories"]    as? Int    ?? 0,
+            estimatedCalories: Int(((json["calories"] as? NSNumber)?.doubleValue ?? 0).rounded()),
             proteinGrams:     (json["protein"]     as? NSNumber)?.doubleValue ?? 0,
             carbsGrams:       (json["carbs"]       as? NSNumber)?.doubleValue ?? 0,
             fatGrams:         (json["fat"]         as? NSNumber)?.doubleValue ?? 0,

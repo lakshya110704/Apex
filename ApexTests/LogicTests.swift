@@ -177,4 +177,9 @@ final class LogicTests: XCTestCase {
     func testParseMealAnalysisRejectsGarbage() {
         XCTAssertThrowsError(try ClaudeService().parseMealAnalysis(from: "sorry, I cannot help"))
     }
+
+    func testParseMealAnalysisKeepsFractionalCalories() throws {
+        let meal = try ClaudeService().parseMealAnalysis(from: "{\"calories\":412.6}")
+        XCTAssertEqual(meal.estimatedCalories, 413)
+    }
 }
