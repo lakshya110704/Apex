@@ -25,9 +25,10 @@ struct FocusTimerCard: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
-                Label("Focus", systemImage: "timer")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ApexColor.accentCyan)
+                HStack(spacing: 6) {
+                    Image(systemName: "timer").foregroundStyle(ApexColor.accent)
+                    Text("Focus").apexLabel()
+                }
                 Spacer()
                 if todayTotalMinutes > 0 {
                     Text("\(todayTotalMinutes)m today")

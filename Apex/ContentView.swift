@@ -28,7 +28,7 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            TodayView(healthKit: healthKit, claude: claude, gamification: gamification, calendar: calendar, github: github, focusTimer: focusTimer)
+            TodayView(healthKit: healthKit, claude: claude, gamification: gamification, calendar: calendar, github: github, focusTimer: focusTimer, selectedTab: $selectedTab)
                 .tabItem { Label("Today",    systemImage: "sun.max.fill") }
                 .tag(0)
 
@@ -49,6 +49,7 @@ struct ContentView: View {
                 .tag(4)
         }
         .tint(ApexColor.accent)
+        .sensoryFeedback(.selection, trigger: selectedTab)
         .fullScreenCover(isPresented: $showMorningCheckIn) {
             MorningCheckInView(healthKit: healthKit, claude: claude)
         }

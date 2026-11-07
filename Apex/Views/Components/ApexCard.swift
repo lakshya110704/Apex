@@ -80,7 +80,7 @@ struct RingView: View {
                 .trim(from: 0, to: min(progress, 1.0))
                 .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.8), value: progress)
+                .animation(.spring(response: 0.6, dampingFraction: 0.85), value: progress)
         }
         .frame(width: size, height: size)
     }

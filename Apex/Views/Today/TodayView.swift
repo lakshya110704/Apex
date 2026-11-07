@@ -16,8 +16,10 @@ struct TodayView: View {
     var calendar: CalendarService
     var github: GitHubService
     var focusTimer: FocusTimerService
+    @Binding var selectedTab: Int
 
     @State private var isGeneratingPlan = false
+    @State private var detail: Detail?
     @State private var planError: String?
     @State private var showAchievement = false
     @State private var toastAchievement: Achievement?
@@ -37,7 +39,7 @@ struct TodayView: View {
                 ApexColor.background.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 20) {
                         // Header
                         headerSection
                             .padding(.horizontal)
@@ -53,46 +55,26 @@ struct TodayView: View {
                                 .padding(.horizontal)
                         }
 
-                        // Today's Plan (top of the scroll — it's your day at a glance)
-                        dailyPlanSection
+                        // The day at a glance: what is next, then what you can do about it
+                        planHero
                             .padding(.horizontal)
 
-                        // Activity Rings
-                        ApexSectionCard(title: "Activity", systemImage: "circle.circle.fill", accentColor: ApexColor.danger) {
-                            ActivityRingsView(
-                                moveProgress: healthKit.moveProgress,
-                                exerciseProgress: healthKit.exerciseProgress,
-                                standProgress: healthKit.standProgress,
-                                moveCalories: healthKit.todayActiveCalories,
-                                exerciseMinutes: healthKit.todayExerciseMinutes,
-                                standHours: healthKit.todayStandHours
-                            )
+                        quickActions
+                            .padding(.horizontal)
+
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                            activityTile
+                            recoveryTile
+                            nutritionTile
+                            workoutsTile
                         }
                         .padding(.horizontal)
 
-                        // Recovery Stats
-                        recoveryStatsSection
-                            .padding(.horizontal)
-
-                        // Focus Timer
                         FocusTimerCard(focusTimer: focusTimer)
                             .padding(.horizontal)
 
-                        // Calendar
-                        if !calendar.todayEvents.isEmpty {
-                            calendarSection
-                                .padding(.horizontal)
-                        }
-
-                        // Today's Workouts
-                        if !todayWorkouts.isEmpty {
-                            todayWorkoutsSection
-                                .padding(.horizontal)
-                        }
-
-                        // Today's Nutrition
-                        if !todayMeals.isEmpty {
-                            nutritionSummarySection
+                        if nextEvent != nil {
+                            calendarTile
                                 .padding(.horizontal)
                         }
 
@@ -129,6 +111,12 @@ struct TodayView: View {
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
+            .sheet(item: $detail) { item in
+                detailSheet(item)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
+            .sensoryFeedback(.impact(weight: .light), trigger: detail)
             .task {
                 await healthKit.requestAuthorization()
                 await calendar.requestAuthorization()
@@ -208,12 +196,15 @@ struct TodayView: View {
         }
     }
 
-    private var dailyPlanSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
+    // MARK: - Plan hero
+
+    private var planHero: some View {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Label("Today's Plan", systemImage: "calendar.badge.clock")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ApexColor.accent)
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar.badge.clock").foregroundStyle(ApexColor.accent)
+                    Text("Today's plan").apexLabel()
+                }
                 Spacer()
                 let aiReady = claude.isConfigured
                 Button {
@@ -223,15 +214,14 @@ struct TodayView: View {
                         .font(.caption.bold())
                         .foregroundStyle(aiReady ? ApexColor.accent : ApexColor.textSecondary)
                 }
+                .buttonStyle(PressableStyle())
                 .disabled(isGeneratingPlan || !aiReady)
             }
-            .padding(16)
 
             if let error = planError {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
                     .foregroundStyle(ApexColor.warning)
-                    .padding([.horizontal, .bottom], 16)
             } else if isGeneratingPlan {
                 HStack(spacing: 12) {
                     ProgressView().tint(ApexColor.accent)
@@ -239,7 +229,6 @@ struct TodayView: View {
                         .font(.subheadline)
                         .foregroundStyle(ApexColor.textSecondary)
                 }
-                .padding([.horizontal, .bottom], 16)
             } else if let plan = todayPlan {
                 let blocks = parsePlanBlocks(from: plan.planText)
                 if blocks.isEmpty {
@@ -247,94 +236,309 @@ struct TodayView: View {
                         .font(.subheadline)
                         .foregroundStyle(ApexColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding([.horizontal, .bottom], 16)
                 } else {
-                    VStack(spacing: 0) {
-                        ForEach(Array(blocks.enumerated()), id: \.element.id) { index, block in
-                            planBlockRow(block, isLast: index == blocks.count - 1)
-                        }
-                    }
-                    .padding(.bottom, 8)
+                    planContent(blocks)
                 }
             } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 32))
-                        .foregroundStyle(ApexColor.accent.opacity(0.4))
-                    let aiReady = claude.isConfigured
-                    Text(aiReady
-                         ? "Generate a personalized plan for today."
-                         : "Choose an AI provider and add its key in Settings to enable AI planning.")
-                        .font(.subheadline)
-                        .foregroundStyle(ApexColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                    if aiReady {
-                        Button { Task { await generatePlan() } } label: {
-                            Text("Generate Plan")
-                                .font(.subheadline.bold())
-                                .foregroundStyle(ApexColor.onAccent)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .background(ApexColor.accent)
-                                .clipShape(Capsule())
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
+                emptyPlan
             }
         }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(ApexColor.cardBg)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
-    private func planBlockRow(_ block: PlanBlock, isLast: Bool) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Timeline column
-            VStack(spacing: 0) {
-                Circle()
-                    .fill(block.accentColor)
-                    .frame(width: 7, height: 7)
-                    .padding(.top, 7)
-                if !isLast {
-                    Rectangle()
-                        .fill(ApexColor.cardBg2)
-                        .frame(width: 1.5)
-                        .frame(maxHeight: .infinity)
-                }
+    @ViewBuilder
+    private func planContent(_ blocks: [PlanBlock]) -> some View {
+        let now = Calendar.current.dateComponents([.hour, .minute], from: Date())
+        let nowMinutes = (now.hour ?? 0) * 60 + (now.minute ?? 0)
+        let nextIndex = PlanTiming.nextIndex(times: blocks.map(\.time), now: nowMinutes) ?? 0
+        let next = blocks[nextIndex]
+
+        VStack(alignment: .leading, spacing: 6) {
+            Text("NEXT UP")
+                .font(.caption2.weight(.heavy))
+                .tracking(1.2)
+                .foregroundStyle(next.accentColor)
+            Text(next.time)
+                .apexDisplay(52)
+                .foregroundStyle(ApexColor.textPrimary)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: next.iconName).foregroundStyle(next.accentColor)
+                Text(next.activity)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(width: 16)
-            .padding(.leading, 16)
+        }
 
-            // Time
-            Text(block.time)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(ApexColor.textSecondary)
-                .frame(width: 42, alignment: .leading)
-                .padding(.top, 4)
-                .padding(.leading, 8)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 10) {
+                    ForEach(Array(blocks.enumerated()), id: \.element.id) { index, block in
+                        planChip(block, state: index < nextIndex ? .past : (index == nextIndex ? .next : .later))
+                            .id(block.id)
+                    }
+                }
+                .scrollTargetLayout()
+            }
+            .scrollTargetBehavior(.viewAligned)
+            .onAppear { proxy.scrollTo(next.id, anchor: .leading) }
+        }
+        .padding(.horizontal, -18)
+        .contentMargins(.horizontal, 18, for: .scrollContent)
+    }
 
-            // Icon + Activity
-            HStack(alignment: .top, spacing: 8) {
+    private enum ChipState { case past, next, later }
+
+    private func planChip(_ block: PlanBlock, state: ChipState) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(block.time)
+                    .font(.system(.caption, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(ApexColor.textSecondary)
+                Spacer()
                 Image(systemName: block.iconName)
                     .font(.caption)
                     .foregroundStyle(block.accentColor)
-                    .frame(width: 14)
-                    .padding(.top, 5)
-                Text(block.activity)
-                    .font(.subheadline)
-                    .foregroundStyle(ApexColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 3)
             }
-            .padding(.leading, 8)
-            .padding(.trailing, 16)
-            .padding(.bottom, isLast ? 8 : 0)
-
+            Text(block.activity)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(ApexColor.textPrimary)
+                .lineLimit(3)
+                .multilineTextAlignment(.leading)
             Spacer(minLength: 0)
         }
-        .frame(minHeight: 36)
+        .padding(12)
+        .frame(width: 148, height: 96, alignment: .topLeading)
+        .background(state == .next ? block.accentColor.opacity(0.14) : ApexColor.cardBg2)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(state == .next ? block.accentColor.opacity(0.6) : Color.clear, lineWidth: 1.5)
+        )
+        .opacity(state == .past ? 0.5 : 1)
+    }
+
+    private var emptyPlan: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 32))
+                .foregroundStyle(ApexColor.accent.opacity(0.4))
+            let aiReady = claude.isConfigured
+            Text(aiReady
+                 ? "Generate a personalized plan for today."
+                 : "Choose an AI provider and add its key in Settings to enable AI planning.")
+                .font(.subheadline)
+                .foregroundStyle(ApexColor.textSecondary)
+                .multilineTextAlignment(.center)
+            if aiReady {
+                Button { Task { await generatePlan() } } label: {
+                    Text("Generate plan")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(ApexColor.onAccent)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(ApexColor.accent)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(PressableStyle())
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Quick actions
+
+    private var quickActions: some View {
+        HStack(spacing: 10) {
+            quickAction("Log workout", systemImage: "dumbbell.fill", tab: 1)
+            quickAction("Snap a meal", systemImage: "camera.fill", tab: 2)
+            quickAction("Ask coach", systemImage: "brain.head.profile", tab: 4)
+        }
+    }
+
+    private func quickAction(_ title: String, systemImage: String, tab: Int) -> some View {
+        Button { selectedTab = tab } label: {
+            VStack(spacing: 8) {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                    .foregroundStyle(ApexColor.accent)
+                    .frame(height: 26)
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 84)
+            .background(ApexColor.cardBg)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    // MARK: - Tiles
+
+    private func tile<Content: View>(_ item: Detail, title: String, systemImage: String, @ViewBuilder content: @escaping () -> Content) -> some View {
+        Button { detail = item } label: {
+            ApexTile(title: title, systemImage: systemImage, content: content)
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    private var activityTile: some View {
+        tile(.activity, title: "Activity", systemImage: "circle.circle.fill") {
+            HStack(spacing: 14) {
+                ZStack {
+                    RingView(progress: healthKit.moveProgress, color: ApexColor.danger, lineWidth: 7, size: 66)
+                    RingView(progress: healthKit.exerciseProgress, color: ApexColor.success, lineWidth: 7, size: 48)
+                    RingView(progress: healthKit.standProgress, color: ApexColor.accent, lineWidth: 7, size: 30)
+                }
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\(Int(healthKit.todayActiveCalories))")
+                        .apexDisplay(30)
+                        .foregroundStyle(ApexColor.textPrimary)
+                    Text("kcal moved")
+                        .font(.caption)
+                        .foregroundStyle(ApexColor.textSecondary)
+                }
+            }
+        }
+    }
+
+    private var recoveryTile: some View {
+        tile(.recovery, title: "Recovery", systemImage: "waveform.path.ecg") {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(healthKit.sleepHoursLast > 0 ? String(format: "%.1f", healthKit.sleepHoursLast) : "–")
+                    .apexDisplay(36)
+                    .foregroundStyle(healthKit.sleepHoursLast > 0 ? sleepColor : ApexColor.textSecondary)
+                Text(healthKit.sleepHoursLast > 0 ? "hours of sleep" : "No sleep data")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.textSecondary)
+                Text(healthKit.hrv > 0 ? "HRV \(Int(healthKit.hrv)) ms" : "HRV no data")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(healthKit.hrv > 0 ? hrvColor : ApexColor.textSecondary)
+                    .padding(.top, 4)
+            }
+        }
+    }
+
+    private var nutritionTile: some View {
+        tile(.nutrition, title: "Nutrition", systemImage: "fork.knife") {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(totalCaloriesToday)")
+                    .apexDisplay(36)
+                    .foregroundStyle(ApexColor.textPrimary)
+                Text("kcal today")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.textSecondary)
+                Text("\(todayMeals.count) meal\(todayMeals.count == 1 ? "" : "s") logged")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ApexColor.textSecondary)
+                    .padding(.top, 4)
+            }
+        }
+    }
+
+    private var workoutsTile: some View {
+        tile(.workouts, title: "Training", systemImage: "dumbbell.fill") {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(todayWorkouts.count)")
+                    .apexDisplay(36)
+                    .foregroundStyle(ApexColor.textPrimary)
+                Text(todayWorkouts.isEmpty ? "No workout yet" : "workout\(todayWorkouts.count == 1 ? "" : "s") today")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.textSecondary)
+                Label("\(profile?.workoutStreak ?? 0) day streak", systemImage: "flame.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle((profile?.workoutStreak ?? 0) > 0 ? ApexColor.danger : ApexColor.textSecondary)
+                    .padding(.top, 4)
+            }
+        }
+    }
+
+    private var nextEvent: CalendarEvent? {
+        calendar.todayEvents.first(where: { $0.endTime > Date() }) ?? calendar.todayEvents.first
+    }
+
+    private var calendarTile: some View {
+        Button { detail = .calendar } label: {
+            ApexTile(title: "Next event", systemImage: "calendar") {
+                if let event = nextEvent {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(event.title)
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(ApexColor.textPrimary)
+                            .lineLimit(2)
+                        Text(event.timeRange)
+                            .font(.caption)
+                            .foregroundStyle(ApexColor.textSecondary)
+                    }
+                }
+            }
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    // MARK: - Detail sheets
+
+    private enum Detail: String, Identifiable {
+        case activity, recovery, nutrition, workouts, calendar
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .activity:  return "Activity"
+            case .recovery:  return "Recovery"
+            case .nutrition: return "Nutrition"
+            case .workouts:  return "Training"
+            case .calendar:  return "Calendar"
+            }
+        }
+    }
+
+    private func detailSheet(_ item: Detail) -> some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    switch item {
+                    case .activity:
+                        ApexSectionCard(title: "Activity", systemImage: "circle.circle.fill", accentColor: ApexColor.danger) {
+                            ActivityRingsView(
+                                moveProgress: healthKit.moveProgress,
+                                exerciseProgress: healthKit.exerciseProgress,
+                                standProgress: healthKit.standProgress,
+                                moveCalories: healthKit.todayActiveCalories,
+                                exerciseMinutes: healthKit.todayExerciseMinutes,
+                                standHours: healthKit.todayStandHours
+                            )
+                        }
+                    case .recovery:
+                        recoveryStatsSection
+                    case .nutrition:
+                        if todayMeals.isEmpty { emptyDetail("No meals logged today.") } else { nutritionSummarySection }
+                    case .workouts:
+                        if todayWorkouts.isEmpty { emptyDetail("No workouts logged today.") } else { todayWorkoutsSection }
+                    case .calendar:
+                        if calendar.todayEvents.isEmpty { emptyDetail("No events today.") } else { calendarSection }
+                    }
+                }
+                .padding()
+            }
+            .background(ApexColor.background)
+            .navigationTitle(item.title)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func emptyDetail(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline)
+            .foregroundStyle(ApexColor.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
     }
 
     private struct PlanBlock: Identifiable {

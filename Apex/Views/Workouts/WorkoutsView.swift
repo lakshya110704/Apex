@@ -198,6 +198,7 @@ struct WorkoutsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(color.opacity(0.3), lineWidth: 1))
         }
+        .buttonStyle(PressableStyle())
     }
 
     // MARK: - Muscle Recovery

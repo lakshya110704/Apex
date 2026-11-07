@@ -21,6 +21,7 @@
 		29DC6E60E6BFD972B1B1E025 /* CoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539F055E67B89A39059217C0 /* CoachView.swift */; };
 		2B433A1AD9FD07A89C676858 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1CC40F7E074D1012E90B6E /* Achievement.swift */; };
 		2D887DED581355E152DBC9A3 /* MuscleHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB279B79196F68170121D471 /* MuscleHeatmapView.swift */; };
+		33E992F634CD2A67E554A14F /* ApexMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7900A4E21BE7541C50343BC /* ApexMotion.swift */; };
 		428BDF92E9F3C12DAA1097B3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BA4531AA412D254BFCB1E7A0 /* PrivacyInfo.xcprivacy */; };
 		4A7AB7B08547DF09AA9126B3 /* ApexApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CA4A9F0892F09227121BBC /* ApexApp.swift */; };
 		4B0CA6F32FEE78FB0AC1B2C7 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9F0118318F02A530827C46 /* Project.swift */; };
@@ -115,6 +116,7 @@
 		F2257CF2BCAC6CF6159CECD6 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		F454D4A5ED49249541497607 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckIn.swift; sourceTree = "<group>"; };
+		F7900A4E21BE7541C50343BC /* ApexMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexMotion.swift; sourceTree = "<group>"; };
 		FB279B79196F68170121D471 /* MuscleHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleHeatmapView.swift; sourceTree = "<group>"; };
 		FC1CC40F7E074D1012E90B6E /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
 		FE9F0118318F02A530827C46 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
@@ -244,6 +246,7 @@
 			isa = PBXGroup;
 			children = (
 				DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */,
+				F7900A4E21BE7541C50343BC /* ApexMotion.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -421,6 +424,7 @@
 				6FC2A35194B1FA60949A5020 /* ActivityRingsView.swift in Sources */,
 				4A7AB7B08547DF09AA9126B3 /* ApexApp.swift in Sources */,
 				06EC5E169933286D091F3C49 /* ApexCard.swift in Sources */,
+				33E992F634CD2A67E554A14F /* ApexMotion.swift in Sources */,
 				03DDC94A99EAB602BBB3CB4C /* BodyFigure.swift in Sources */,
 				08867D388A5DE37B1CEFC7C5 /* CalendarService.swift in Sources */,
 				FCC1E87764427E7373DEF203 /* ClaudeService.swift in Sources */,

@@ -270,7 +270,7 @@ final class LogicTests: XCTestCase {
 
         let ai = ClaudeService()
 
-        XCTAssertEqual(ai.apiKey, "legacy-key")
+        XCTAssertEqual(ai.apiKey(for: .gemini), "legacy-key")
         XCTAssertEqual(KeychainStore.get(name), "legacy-key")
         XCTAssertNil(ud.string(forKey: name), "plaintext copy should be removed")
     }
@@ -487,5 +487,20 @@ final class LogicTests: XCTestCase {
             guard case .consentRequired(let company) = error else { return XCTFail("got \(error)") }
             XCTAssertEqual(company, "OpenAI")
         } catch { XCTFail("unexpected \(error)") }
+    }
+
+    // MARK: Plan timing
+
+    func testNextPlanBlock() {
+        let times = ["07:00", "08:30", "13:00", "22:00"]
+        XCTAssertEqual(PlanTiming.nextIndex(times: times, now: 6 * 60), 0)
+        XCTAssertEqual(PlanTiming.nextIndex(times: times, now: 8 * 60 + 30), 1, "a block starting now is next")
+        XCTAssertEqual(PlanTiming.nextIndex(times: times, now: 9 * 60), 2)
+        XCTAssertEqual(PlanTiming.nextIndex(times: times, now: 23 * 60), 3, "after the last block, show the last one")
+        XCTAssertNil(PlanTiming.nextIndex(times: [], now: 600))
+        XCTAssertNil(PlanTiming.nextIndex(times: ["soon", "25:99"], now: 600))
+        XCTAssertEqual(PlanTiming.nextIndex(times: ["??", "10:00"], now: 600), 1, "unparsable times are skipped")
+        XCTAssertEqual(PlanTiming.minutes("07:05"), 425)
+        XCTAssertNil(PlanTiming.minutes("7"))
     }
 }
