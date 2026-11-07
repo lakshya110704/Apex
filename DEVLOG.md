@@ -258,7 +258,10 @@ The reference app used a fully anatomical illustration with separately-colored q
 - 7 and 30 day streak bonuses are awarded. The old sleepWeek achievement became "Week of Mornings" (7 completed check-ins in a row).
 - AI context says "not reported" when there is no check-in instead of a default energy of 3.
 - Ollama requests now add 1,200 tokens of headroom for reasoning models. Without it `gpt-oss:20b` returned an empty reply at the 300 token meal limit.
-- 20 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
+- API key moved from UserDefaults to the Keychain, with a one-time migration of an existing key.
+- Added PRIVACY.md. Removed three XP constants nothing used.
+- Simulator run with Health denied showed zeros as real values and a Low recovery score. Fixed: No data, Unknown score, neutral advice. Also fixed "How was today, ?" for a user with no name.
+- 23 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
 

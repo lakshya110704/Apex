@@ -20,7 +20,7 @@ Also: morning and evening check-ins, XP for logging, a local notification at 8pm
 - **Ollama (optional)**. If you enter a LAN address in Settings and it responds, text requests go to your own Ollama server instead. Meal photo analysis always uses Gemini. Ollama requests get 1,200 extra tokens so reasoning models such as `gpt-oss:20b` do not use the whole limit on hidden thinking and return an empty reply. I checked this with the same request shape sent by `curl` to `gpt-oss:20b` (valid JSON back at a 1,500 token limit, empty reply at 300). I have not run the app itself against an Ollama server.
 - The class is named `ClaudeService` for historical reasons. It does not call Anthropic.
 
-Gemini calls are off until you turn on "Share data with Google Gemini" in Settings. The key is stored in `UserDefaults` on the device (not the Keychain), is sent in a request header, and is never part of the source.
+Gemini calls are off until you turn on "Share data with Google Gemini" in Settings. The key is stored in the iOS Keychain on the device, is sent in a request header, and is never part of the source.
 
 ## Stack
 
@@ -53,12 +53,13 @@ Add your name and API key in Settings on first launch.
 ## Status
 
 - Builds with Xcode 27.2 for the iOS 18.0 simulator.
-- Unit tests: 20 run, 20 pass, 0 fail (iOS 18.0 simulator, `xcodebuild test`). They cover the data and logic layer only: levels, streaks, XP, achievements, muscle tracker, exercise list, meal JSON parsing, AI consent gate and error messages.
+- Unit tests: 23 run, 23 pass, 0 fail (iOS 18.0 simulator). Run them ad-hoc signed, because the Keychain test needs an entitlement that unsigned builds lack: `xcodebuild test -project Apex.xcodeproj -scheme Apex -destination 'platform=iOS Simulator,name=<your simulator>' CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO`. With `CODE_SIGNING_ALLOWED=NO` the Keychain test fails (last unsigned run: 21 tests, 4 failures, all that test). They cover the data and logic layer only: levels, streaks, XP, achievements, muscle tracker, exercise list, meal JSON parsing, AI consent gate, error messages, Keychain storage and migration, and missing-Health-data handling.
 - Not covered by tests and not verified by me: HealthKit and Apple Watch data, the 8pm notification, camera, calendar, GitHub, and real Gemini or Ollama calls. These need a device, a key or a local server.
-- Not awarded: XP for completing the daily plan, closing rings and logging sleep (constants exist, nothing calls them).
+- No XP for completing the daily plan, closing rings or logging sleep.
 - The calorie and protein targets are rough rules (weight x 33 kcal, weight x 1.8 g), not a validated formula, and are 0 when Health has no weight.
 - The sleep score is a simple home-made formula from sleep hours and HRV.
-- Not yet done for an App Store release: privacy policy URL, support URL, App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
+- Seen on a simulator screen (iOS 18.0): app icon, first-run Health and notification prompts, the check-in with Health denied. Not seen: the Settings toggle and the Today notice.
+- Not yet done for an App Store release: a hosted privacy policy URL (the text is in PRIVACY.md), a support URL (the GitHub issues page can serve), App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).
 
