@@ -12,6 +12,7 @@
 		08867D388A5DE37B1CEFC7C5 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDEE14B1460503750A7B368 /* CalendarService.swift */; };
 		0AFC92E45F64E13238E1F652 /* WorkoutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100BBF424DC3DB1F00A3780D /* WorkoutsView.swift */; };
 		0B382AE206169D1FDCC67970 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E4CDBE4D93590B49DEB57 /* ProgressView.swift */; };
+		0E52C76F1D6DACA133514345 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6AF89A94049981707DF42E9 /* Assets.xcassets */; };
 		149C90C77FAC93A08C0C86BE /* WorkoutScheduleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12980883739B1A0E91385918 /* WorkoutScheduleEditorView.swift */; };
 		1CDB4A0D0F074D21F4751909 /* FocusTimerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894695B03401DD49DC76CA73 /* FocusTimerService.swift */; };
 		24AF65DEA7E067429CD83026 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D172ECBAA552236C508936 /* UserProfile.swift */; };
@@ -19,6 +20,7 @@
 		29DC6E60E6BFD972B1B1E025 /* CoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539F055E67B89A39059217C0 /* CoachView.swift */; };
 		2B433A1AD9FD07A89C676858 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1CC40F7E074D1012E90B6E /* Achievement.swift */; };
 		2D887DED581355E152DBC9A3 /* MuscleHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB279B79196F68170121D471 /* MuscleHeatmapView.swift */; };
+		428BDF92E9F3C12DAA1097B3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BA4531AA412D254BFCB1E7A0 /* PrivacyInfo.xcprivacy */; };
 		4A7AB7B08547DF09AA9126B3 /* ApexApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CA4A9F0892F09227121BBC /* ApexApp.swift */; };
 		4B0CA6F32FEE78FB0AC1B2C7 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9F0118318F02A530827C46 /* Project.swift */; };
 		4CB7BF1194C8D258171E0CFF /* GamificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FEF66B86D96A0B544A752F /* GamificationService.swift */; };
@@ -92,6 +94,7 @@
 		B2E1308BEC56BDD3C642A9C7 /* EveningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckInView.swift; sourceTree = "<group>"; };
 		B6CA4A9F0892F09227121BBC /* ApexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexApp.swift; sourceTree = "<group>"; };
 		B6CC8449A72C5BD029BEE3C8 /* MorningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInView.swift; sourceTree = "<group>"; };
+		BA4531AA412D254BFCB1E7A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB5FE467FFBB47D8C7754B45 /* ExercisePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerView.swift; sourceTree = "<group>"; };
 		BF824F8EE0C29A6043CB42B6 /* FocusTimerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerCard.swift; sourceTree = "<group>"; };
 		C08A82C5BC8AD98DEBA5C0FC /* ExerciseDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseDatabase.swift; sourceTree = "<group>"; };
@@ -102,6 +105,7 @@
 		DA3201E438E229D83003D213 /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexCard.swift; sourceTree = "<group>"; };
 		E27F88561590E1B3794330FB /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		E6AF89A94049981707DF42E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F0379D04E2967149700E8D3D /* Apex.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Apex.entitlements; sourceTree = "<group>"; };
 		F454D4A5ED49249541497607 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckIn.swift; sourceTree = "<group>"; };
@@ -215,8 +219,10 @@
 			children = (
 				F0379D04E2967149700E8D3D /* Apex.entitlements */,
 				B6CA4A9F0892F09227121BBC /* ApexApp.swift */,
+				E6AF89A94049981707DF42E9 /* Assets.xcassets */,
 				F454D4A5ED49249541497607 /* ContentView.swift */,
 				40181B3318A24968404E9078 /* Info.plist */,
+				BA4531AA412D254BFCB1E7A0 /* PrivacyInfo.xcprivacy */,
 				25D4F999BA1869E6B65194E5 /* Data */,
 				559E385C6E39812EE3F21314 /* Models */,
 				D99AFF91A664777607B8998A /* Services */,
@@ -307,6 +313,7 @@
 			buildConfigurationList = 3CCB10E6493CA13231B7C1CA /* Build configuration list for PBXNativeTarget "Apex" */;
 			buildPhases = (
 				2DC01C96DF2AD4C879811D75 /* Sources */,
+				C5A8C2D956E281D88ADFAD68 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -373,6 +380,18 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C5A8C2D956E281D88ADFAD68 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E52C76F1D6DACA133514345 /* Assets.xcassets in Resources */,
+				428BDF92E9F3C12DAA1097B3 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		05699B850D1FBEE988CAAA1F /* Sources */ = {

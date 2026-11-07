@@ -26,8 +26,8 @@
 	<string>Apex uses the camera to photograph your meals for calorie estimation.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Apex reads your workouts, sleep, heart rate, and activity data to personalize your daily plan.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Apex can save workouts to your Health app.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Apex connects to an Ollama server on your local network if you set one up in Settings.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Apex accesses your photo library to log meal photos.</string>
 	<key>UIApplicationSceneManifest</key>
@@ -39,8 +39,8 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<key>UILaunchScreen</key>
+	<dict/>
 	<key>UIRequiresFullScreen</key>
 	<false/>
 	<key>UISupportedInterfaceOrientations</key>
