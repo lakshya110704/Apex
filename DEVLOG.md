@@ -161,7 +161,7 @@ Core philosophy baked into the prompt:
 - No filler openers ("Great question!"), lead with the answer
 
 ### New ApexContext fields
-- `calorieTarget` - `weight × 33` (Mifflin-St Jeor approximation for moderate activity)
+- `calorieTarget` - `weight × 33` (a rough rule of thumb, not Mifflin-St Jeor)
 - `proteinTarget` - `weight × 1.8g` (athlete standard)
 - `proteinGrams`, `carbsGrams`, `fatGrams` - summed from today's MealEntry records
 - `scheduledWorkoutsToday` - from WorkoutScheduleEntry for today's weekday
@@ -248,6 +248,16 @@ The reference app used a fully anatomical illustration with separately-colored q
 - **`Utils/Extensions.swift`** - added `Color.lerp(_:_:_:)`, a UIColor-based RGB interpolation helper
 - **`Views/Progress/MuscleHeatmapView.swift`** - new screen: two `BodyFigureView`s (front/back) built from positioned shapes, a range menu, a gradient legend, and a per-group sets breakdown list
 - **`Views/Progress/ProgressView.swift`** - new "Muscles Worked" nav link above the Achievements preview
+
+---
+
+## Session 9 - Publish readiness
+
+- Added MIT license, app icon, privacy manifest, local network and launch screen entries; removed the unused Health write string.
+- Gemini key moved from the URL to a request header. Gemini calls require an explicit opt-in toggle in Settings. Offline, quota and Health failures show messages.
+- 7 and 30 day streak bonuses are awarded. The old sleepWeek achievement became "Week of Mornings" (7 completed check-ins in a row).
+- AI context says "not reported" when there is no check-in instead of a default energy of 3.
+- 20 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
 
