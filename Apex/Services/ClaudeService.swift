@@ -22,7 +22,7 @@ struct ApexContext {
     var weeklyAvgActiveCalories: Double = 0
     var weeklyWorkoutCount: Int = 0
     // Morning check-in
-    var energyLevel: Int = 3
+    var energyLevel: Int = 0   // 0 = no check-in today
     var recoveryRating: String = "Moderate"
     var sleepScore: Int = 0
     var focusProjects: [String] = []
@@ -452,7 +452,9 @@ final class ClaudeService {
         if ctx.mindfulMinutes > 0 { lines.append("Mindfulness: \(Int(ctx.mindfulMinutes)) min today") }
 
         lines.append("\n── RECOVERY ──")
-        lines.append("Sleep score: \(ctx.sleepScore)/100 | Recovery: \(ctx.recoveryRating) | Energy: \(ctx.energyLevel)/5")
+        let sleepText = ctx.sleepScore > 0 ? "\(ctx.sleepScore)/100" : "not reported"
+        let energyText = ctx.energyLevel > 0 ? "\(ctx.energyLevel)/5" : "not reported"
+        lines.append("Sleep score: \(sleepText) | Recovery: \(ctx.recoveryRating) | Energy: \(energyText)")
 
         lines.append("\n── TRAINING ──")
         lines.append("Workouts logged in Apex this week: \(ctx.weeklyApexWorkouts)")

@@ -30,7 +30,9 @@ final class GamificationService {
         }
         workout.xpEarned = xp
         awardXP(xp, to: profile)
+        let streakBefore = profile.workoutStreak
         updateWorkoutStreak(profile: profile)
+        awardXP(Self.streakMilestoneXP(from: streakBefore, to: profile.workoutStreak), to: profile)
         checkAchievements(profile: profile, context: context)
         notifications.cancelReminder()
     }
@@ -85,12 +87,37 @@ final class GamificationService {
         }
     }
 
+    /// Bonus XP for crossing the 7 and 30 day workout streak marks in a single update.
+    static func streakMilestoneXP(from before: Int, to after: Int) -> Int {
+        var xp = 0
+        if before < 7 && after >= 7 { xp += XPValues.sevenDayStreak }
+        if before < 30 && after >= 30 { xp += XPValues.thirtyDayStreak }
+        return xp
+    }
+
+    /// Length of the run of consecutive days ending today or yesterday.
+    static func consecutiveDayRun(_ dates: [Date]) -> Int {
+        let days = Set(dates.map(\.startOfDay))
+        let cal = Calendar.current
+        var cursor = Date().startOfDay
+        if !days.contains(cursor) { cursor = cal.date(byAdding: .day, value: -1, to: cursor)! }
+        var run = 0
+        while days.contains(cursor) {
+            run += 1
+            cursor = cal.date(byAdding: .day, value: -1, to: cursor)!
+        }
+        return run
+    }
+
     // MARK: - Achievement Checking
 
     func checkAchievements(profile: UserProfile, context: ModelContext) {
         let allWorkouts = (try? context.fetch(FetchDescriptor<WorkoutSession>())) ?? []
         let allMeals    = (try? context.fetch(FetchDescriptor<MealEntry>())) ?? []
         let allAchievements = fetchOrCreateAchievements(context: context)
+
+        let checkIns = (try? context.fetch(FetchDescriptor<MorningCheckIn>())) ?? []
+        let checkInRun = Self.consecutiveDayRun(checkIns.filter(\.isComplete).map(\.date))
 
         let tennisCount = allWorkouts.filter { $0.type == .tennis }.count
         let gymCount    = allWorkouts.filter { $0.type == .gym }.count
@@ -110,6 +137,7 @@ final class GamificationService {
             (.thirtyDayStreak,profile.workoutStreak >= 30),
             (.thousandXP,     profile.xpPoints >= 1000),
             (.levelFive,      profile.level >= 5),
+            (.sleepWeek,      checkInRun >= 7),
         ]
 
         for (id, condition) in checks {

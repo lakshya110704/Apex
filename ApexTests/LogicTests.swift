@@ -11,7 +11,7 @@ final class LogicTests: XCTestCase {
 
     private func makeContext() throws -> ModelContext {
         let container = try ModelContainer(
-            for: UserProfile.self, WorkoutSession.self, GymExercise.self, MealEntry.self, Achievement.self,
+            for: UserProfile.self, WorkoutSession.self, GymExercise.self, MealEntry.self, Achievement.self, MorningCheckIn.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         return ModelContext(container)
@@ -206,5 +206,35 @@ final class LogicTests: XCTestCase {
         XCTAssertTrue(ClaudeError.apiError(400, "").errorDescription?.contains("400") == true)
         XCTAssertTrue(ClaudeError.networkError.errorDescription?.contains("internet") == true)
         XCTAssertTrue(ClaudeError.consentRequired.errorDescription?.contains("Settings") == true)
+    }
+
+    // MARK: Streak bonuses and check-in run
+
+    func testStreakMilestoneXP() {
+        XCTAssertEqual(GamificationService.streakMilestoneXP(from: 5, to: 6), 0)
+        XCTAssertEqual(GamificationService.streakMilestoneXP(from: 6, to: 7), XPValues.sevenDayStreak)
+        XCTAssertEqual(GamificationService.streakMilestoneXP(from: 7, to: 7), 0)
+        XCTAssertEqual(GamificationService.streakMilestoneXP(from: 29, to: 30), XPValues.thirtyDayStreak)
+        XCTAssertEqual(GamificationService.streakMilestoneXP(from: 6, to: 30), XPValues.sevenDayStreak + XPValues.thirtyDayStreak)
+    }
+
+    func testConsecutiveDayRun() {
+        XCTAssertEqual(GamificationService.consecutiveDayRun([]), 0)
+        XCTAssertEqual(GamificationService.consecutiveDayRun([day(0), day(-1), day(-2)]), 3)
+        XCTAssertEqual(GamificationService.consecutiveDayRun([day(-1), day(-2)]), 2)   // today not done yet
+        XCTAssertEqual(GamificationService.consecutiveDayRun([day(0), day(-2)]), 1)    // gap breaks the run
+        XCTAssertEqual(GamificationService.consecutiveDayRun([day(-3)]), 0)
+    }
+
+    func testSevenCheckInsUnlockWeekOfMornings() throws {
+        let context = try makeContext()
+        for offset in 0..<7 {
+            let checkIn = MorningCheckIn(date: day(-offset))
+            checkIn.isComplete = true
+            context.insert(checkIn)
+        }
+        let service = GamificationService()
+        service.checkAchievements(profile: UserProfile(), context: context)
+        XCTAssertTrue(service.pendingAchievements.contains { $0.achievementID == AchievementID.sleepWeek.rawValue })
     }
 }

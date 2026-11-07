@@ -130,7 +130,7 @@ enum AchievementID: String, CaseIterable {
         case .levelFive:
             return ("Elite", "Reach Level 5", "chevron.up.2", 200)
         case .sleepWeek:
-            return ("Deep Sleeper", "Track sleep 7 days in a row", "moon.zzz.fill", 150)
+            return ("Week of Mornings", "Complete 7 morning check-ins in a row", "moon.zzz.fill", 150)
         }
     }
 }

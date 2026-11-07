@@ -471,7 +471,7 @@ struct CoachView: View {
             weeklyAvgHRV: healthKit.weeklyAvgHRV,
             weeklyAvgActiveCalories: healthKit.weeklyAvgActiveCalories,
             weeklyWorkoutCount: healthKit.weeklyWorkoutCount,
-            energyLevel: todayCheckIn?.energyLevel ?? 3,
+            energyLevel: todayCheckIn?.energyLevel ?? 0,
             recoveryRating: todayCheckIn?.recoveryRating ?? "Moderate",
             sleepScore: todayCheckIn?.sleepScore ?? 0,
             focusProjects: todayCheckIn?.focusProjectNames ?? [],
