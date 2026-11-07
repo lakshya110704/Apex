@@ -108,14 +108,13 @@ To add them in Xcode:
 
 | Action | XP Earned |
 |--------|-----------|
-| Log gym workout | +60 XP |
+| Log gym workout or run | +60 XP |
 | Log tennis session | +80 XP |
+| Log other workout | +30 XP |
 | Log a meal | +25 XP |
-| Complete daily plan | +120 XP |
-| Hit all 3 activity rings | +90 XP |
-| 7-day streak | +250 XP |
-| 30-day streak | +1,000 XP |
-| Unlock achievement | +50–750 XP |
+| Unlock achievement | +25 to +750 XP (per achievement) |
+
+Not awarded yet: completing the daily plan, closing activity rings, logging sleep, and streak milestone bonuses. The values exist in `Constants.swift` but nothing calls them. The `sleepWeek` achievement is also never unlocked.
 
 ---
 
