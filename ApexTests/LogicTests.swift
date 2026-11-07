@@ -1,5 +1,6 @@
 import XCTest
 import SwiftData
+import HealthKit
 @testable import Apex
 
 @MainActor
@@ -277,5 +278,17 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(MorningCheckIn.sleepScore(hours: 7.5, hrv: 100), 100)
         XCTAssertEqual(MorningCheckIn.recoveryRating(score: 15), "Low")
         XCTAssertGreaterThan(MorningCheckIn.sleepScore(hours: 8, hrv: 0), 0)   // sleep alone still scores
+    }
+
+    func testHealthReadTypesCoverEveryFetcher() {
+        let needed: [HKObjectType] = [
+            HKQuantityType(.stepCount), HKQuantityType(.activeEnergyBurned), HKQuantityType(.appleExerciseTime),
+            HKQuantityType(.restingHeartRate), HKQuantityType(.heartRateVariabilitySDNN), HKQuantityType(.vo2Max),
+            HKQuantityType(.respiratoryRate), HKQuantityType(.bodyMass), HKCategoryType(.sleepAnalysis),
+            HKCategoryType(.mindfulSession), HKObjectType.activitySummaryType(), HKObjectType.workoutType(),
+        ]
+        for type in needed {
+            XCTAssertTrue(HealthKitService.readTypes.contains(type), "\(type) is read but not requested")
+        }
     }
 }

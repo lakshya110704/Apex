@@ -261,7 +261,8 @@ The reference app used a fully anatomical illustration with separately-colored q
 - API key moved from UserDefaults to the Keychain, with a one-time migration of an existing key.
 - Added PRIVACY.md. Removed three XP constants nothing used.
 - Simulator run with Health denied showed zeros as real values and a Low recovery score. Fixed: No data, Unknown score, neutral advice. Also fixed "How was today, ?" for a user with no name.
-- 23 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
+- Health permission list was missing exercise minutes (read as 0 even with data); added it and a test.
+- 24 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
 

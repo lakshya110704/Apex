@@ -35,31 +35,34 @@ final class HealthKitService {
 
     // MARK: - Authorization
 
+    /// Every type the fetchers below read. A type missing here reads as 0 without any error.
+    static let readTypes: Set<HKObjectType> = [
+        HKObjectType.workoutType(),
+        HKObjectType.quantityType(forIdentifier: .heartRate)!,
+        HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!,
+        HKObjectType.quantityType(forIdentifier: .restingHeartRate)!,
+        HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
+        HKObjectType.quantityType(forIdentifier: .basalEnergyBurned)!,
+        HKObjectType.quantityType(forIdentifier: .stepCount)!,
+        HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,
+        HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!,
+        HKObjectType.activitySummaryType(),
+        HKObjectType.quantityType(forIdentifier: .vo2Max)!,
+        HKObjectType.quantityType(forIdentifier: .respiratoryRate)!,
+        HKObjectType.quantityType(forIdentifier: .bodyMass)!,
+        HKObjectType.categoryType(forIdentifier: .mindfulSession)!,
+        HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!,
+    ]
+
     func requestAuthorization() async {
         guard HKHealthStore.isHealthDataAvailable() else {
             healthNotice = "Health data isn't available on this device."
             return
         }
 
-        let readTypes: Set<HKObjectType> = [
-            HKObjectType.workoutType(),
-            HKObjectType.quantityType(forIdentifier: .heartRate)!,
-            HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!,
-            HKObjectType.quantityType(forIdentifier: .restingHeartRate)!,
-            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
-            HKObjectType.quantityType(forIdentifier: .basalEnergyBurned)!,
-            HKObjectType.quantityType(forIdentifier: .stepCount)!,
-            HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,
-            HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!,
-            HKObjectType.activitySummaryType(),
-            HKObjectType.quantityType(forIdentifier: .vo2Max)!,
-            HKObjectType.quantityType(forIdentifier: .respiratoryRate)!,
-            HKObjectType.quantityType(forIdentifier: .bodyMass)!,
-            HKObjectType.categoryType(forIdentifier: .mindfulSession)!,
-        ]
 
         do {
-            try await store.requestAuthorization(toShare: [], read: readTypes)
+            try await store.requestAuthorization(toShare: [], read: Self.readTypes)
             isAuthorized = true
             await fetchAllTodayData()
             let noData = todaySteps == 0 && restingHeartRate == 0 && hrv == 0 && sleepHoursLast == 0
