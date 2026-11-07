@@ -117,67 +117,34 @@ private struct BodyFigureView: View {
     let setCounts: [MuscleGroup: Int]
     @Environment(\.colorScheme) private var scheme
 
-    private var mutedColor: Color { MuscleGroupTracker.coolColor(scheme) }
-    private var outlineColor: Color { Color.black.opacity(scheme == .dark ? 0.55 : 0.18) }
-
-    private func color(for group: MuscleGroup) -> Color {
-        MuscleGroupTracker.heatColor(sets: setCounts[group] ?? 0, scheme: scheme)
-    }
-
-    @ViewBuilder
-    private func region<S: Shape>(_ shape: S, fill: Color) -> some View {
-        shape.fill(fill).overlay(shape.stroke(outlineColor, lineWidth: 1.25))
+    private var summary: String {
+        MuscleGroupTracker.trackedGroups
+            .map { "\($0.rawValue) \(setCounts[$0] ?? 0) sets" }
+            .joined(separator: ", ")
     }
 
     var body: some View {
-        ZStack {
-            // Head + neck
-            region(Circle(), fill: mutedColor).frame(width: 32, height: 32).position(x: 68, y: 20)
-            region(RoundedRectangle(cornerRadius: 5, style: .continuous), fill: mutedColor)
-                .frame(width: 16, height: 14).position(x: 68, y: 42)
-
-            // Shoulders / traps
-            region(Capsule(), fill: color(for: .shoulders))
-                .frame(width: 34, height: 20).rotationEffect(.degrees(-16)).position(x: 30, y: 58)
-            region(Capsule(), fill: color(for: .shoulders))
-                .frame(width: 34, height: 20).rotationEffect(.degrees(16)).position(x: 106, y: 58)
-
-            // Torso
-            if facing == .front {
-                // Pecs
-                region(Capsule(), fill: color(for: .chest))
-                    .frame(width: 30, height: 22).rotationEffect(.degrees(-6)).position(x: 55, y: 76)
-                region(Capsule(), fill: color(for: .chest))
-                    .frame(width: 30, height: 22).rotationEffect(.degrees(6)).position(x: 81, y: 76)
-                // Abs
-                region(RoundedRectangle(cornerRadius: 14, style: .continuous), fill: color(for: .core))
-                    .frame(width: 34, height: 46).position(x: 68, y: 118)
-            } else {
-                region(RoundedRectangle(cornerRadius: 22, style: .continuous), fill: color(for: .back))
-                    .frame(width: 52, height: 74).position(x: 68, y: 92)
+        Canvas { context, size in
+            let canvas = BodyFigure.canvas
+            let scale = min(size.width / canvas.width, size.height / canvas.height)
+            let transform = CGAffineTransform(translationX: (size.width - canvas.width * scale) / 2, y: 0)
+                .scaledBy(x: scale, y: scale)
+            for region in BodyFigure.regions(facing == .front ? .front : .back) {
+                let path = Path(region.path).applying(transform)
+                let fill: Color
+                if let name = region.group, let group = MuscleGroup(rawValue: name) {
+                    fill = MuscleGroupTracker.heatColor(sets: setCounts[group] ?? 0, scheme: scheme)
+                } else {
+                    fill = ApexColor.cardBg2
+                }
+                context.fill(path, with: .color(fill))
+                context.stroke(path, with: .color(ApexColor.background), lineWidth: 1.2)
             }
-
-            // Arms (biceps front, triceps back)
-            let armColor = facing == .front ? color(for: .biceps) : color(for: .triceps)
-            region(Capsule(), fill: armColor).frame(width: 17, height: 98).position(x: 22, y: 104)
-            region(Capsule(), fill: armColor).frame(width: 17, height: 98).position(x: 114, y: 104)
-
-            // Hands
-            region(Circle(), fill: mutedColor).frame(width: 13, height: 13).position(x: 22, y: 158)
-            region(Circle(), fill: mutedColor).frame(width: 13, height: 13).position(x: 114, y: 158)
-
-            // Thighs
-            region(Capsule(), fill: color(for: .legs)).frame(width: 24, height: 74).position(x: 56, y: 174)
-            region(Capsule(), fill: color(for: .legs)).frame(width: 24, height: 74).position(x: 80, y: 174)
-
-            // Calves
-            region(Capsule(), fill: color(for: .legs)).frame(width: 19, height: 52).position(x: 56, y: 230)
-            region(Capsule(), fill: color(for: .legs)).frame(width: 19, height: 52).position(x: 80, y: 230)
-
-            // Feet
-            region(Capsule(), fill: mutedColor).frame(width: 24, height: 11).position(x: 56, y: 260)
-            region(Capsule(), fill: mutedColor).frame(width: 24, height: 11).position(x: 80, y: 260)
         }
-        .frame(width: 136, height: 270)
+        .aspectRatio(BodyFigure.canvas.width / BodyFigure.canvas.height, contentMode: .fit)
+        .frame(height: 340)
+        .accessibilityElement()
+        .accessibilityLabel(facing == .front ? "Front of body" : "Back of body")
+        .accessibilityValue(summary)
     }
 }

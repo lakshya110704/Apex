@@ -291,4 +291,28 @@ final class LogicTests: XCTestCase {
             XCTAssertTrue(HealthKitService.readTypes.contains(type), "\(type) is read but not requested")
         }
     }
+
+    // MARK: Body figure
+
+    func testBodyFigureRegionsAreValid() {
+        let bounds = CGRect(origin: .zero, size: BodyFigure.canvas).insetBy(dx: -1, dy: -1)
+        for side in [BodyFigure.Side.front, .back] {
+            let regions = BodyFigure.regions(side)
+            XCTAssertFalse(regions.isEmpty)
+            var groups = Set<MuscleGroup>()
+            for region in regions {
+                XCTAssertFalse(region.path.isEmpty)
+                XCTAssertTrue(bounds.contains(region.path.boundingBox), "\(region.group ?? "neutral") region leaves the canvas")
+                if let name = region.group {
+                    guard let group = MuscleGroup(rawValue: name) else { return XCTFail("unknown group \(name)") }
+                    XCTAssertTrue(MuscleGroupTracker.trackedGroups.contains(group))
+                    groups.insert(group)
+                }
+            }
+            let expected: Set<MuscleGroup> = side == .front
+                ? [.chest, .shoulders, .biceps, .core, .legs]
+                : [.back, .shoulders, .triceps, .legs]
+            XCTAssertEqual(groups, expected, "\(side) shows the wrong muscle groups")
+        }
+    }
 }

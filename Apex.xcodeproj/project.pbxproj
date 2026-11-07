@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03DDC94A99EAB602BBB3CB4C /* BodyFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759E75B96EC4F87F61853A7F /* BodyFigure.swift */; };
 		06EC5E169933286D091F3C49 /* ApexCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */; };
 		086FE2027751C5327FB24975 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F454D4A5ED49249541497607 /* ContentView.swift */; };
 		08867D388A5DE37B1CEFC7C5 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDEE14B1460503750A7B368 /* CalendarService.swift */; };
@@ -86,6 +87,7 @@
 		578BBD23F0FA422AB74E5EF4 /* DailyPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPlan.swift; sourceTree = "<group>"; };
 		5A1BA7047897CB5AADB4D2DB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		7357EA9A4D171B7855669B28 /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
+		759E75B96EC4F87F61853A7F /* BodyFigure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyFigure.swift; sourceTree = "<group>"; };
 		84AF7EB5E73D55168804ADEB /* MealCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCameraView.swift; sourceTree = "<group>"; };
 		894695B03401DD49DC76CA73 /* FocusTimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerService.swift; sourceTree = "<group>"; };
 		940DAF87AF3C5AAF288D171D /* MealEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEntry.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 		4E1BC903125090F4E94FC5DE /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				759E75B96EC4F87F61853A7F /* BodyFigure.swift */,
 				C895330A048082A3D73E7D33 /* Constants.swift */,
 				0D74E831027CBD45BFE359C0 /* Extensions.swift */,
 				F2257CF2BCAC6CF6159CECD6 /* KeychainStore.swift */,
@@ -414,6 +417,7 @@
 				6FC2A35194B1FA60949A5020 /* ActivityRingsView.swift in Sources */,
 				4A7AB7B08547DF09AA9126B3 /* ApexApp.swift in Sources */,
 				06EC5E169933286D091F3C49 /* ApexCard.swift in Sources */,
+				03DDC94A99EAB602BBB3CB4C /* BodyFigure.swift in Sources */,
 				08867D388A5DE37B1CEFC7C5 /* CalendarService.swift in Sources */,
 				FCC1E87764427E7373DEF203 /* ClaudeService.swift in Sources */,
 				29DC6E60E6BFD972B1B1E025 /* CoachView.swift in Sources */,
