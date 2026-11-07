@@ -14,6 +14,21 @@ A native iOS app that combines Apple Watch health data, workout and meal logging
 
 Also: morning and evening check-ins, XP for logging, a local notification at 8pm when a streak is at risk or nothing is logged, GitHub commits for today (public events API, username set in Settings).
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/today.png" width="190" alt="Today tab with the no Health data notice">
+  <img src="docs/screenshots/workouts.png" width="190" alt="Workouts tab with muscle recovery">
+  <img src="docs/screenshots/progress.png" width="190" alt="Progress tab">
+</p>
+<p>
+  <img src="docs/screenshots/muscles-worked.png" width="190" alt="Muscles Worked heatmap">
+  <img src="docs/screenshots/coach.png" width="190" alt="Coach tab">
+  <img src="docs/screenshots/settings.png" width="190" alt="Settings with the Gemini sharing switch">
+</p>
+
+Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. The Workouts, Progress and Muscles Worked screens show one logged gym workout: bench press, pull-up and back squat, 3 sets each. The design is not final.
+
 ## AI services
 
 - **Gemini** (`gemini-2.5-flash`, Google AI REST API). Needs your own API key, entered in Settings. Used for meal analysis, daily plan and coach chat. Meal photos and the health/context summary are sent to Google when you use these features.
@@ -58,7 +73,8 @@ Add your name and API key in Settings on first launch.
 - No XP for completing the daily plan, closing rings or logging sleep.
 - The calorie and protein targets are rough rules (weight x 33 kcal, weight x 1.8 g), not a validated formula, and are 0 when Health has no weight.
 - The sleep score is a simple home-made formula from sleep hours and HRV.
-- Seen on a simulator screen (iOS 18.0): app icon, first-run Health and notification prompts, the check-in with Health denied. Not seen: the Settings toggle and the Today notice.
+- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Progress, the Muscles Worked heatmap, Coach and Settings (including the Gemini sharing switch). Not seen: any Gemini or Ollama reply.
+- Known visual issues: on the Nutrition tab the "+25 XP" label in the Snap a Meal button wraps one character per line; the Coach banner says "Measured" even with no data, because it starts from a default energy level.
 - Not yet done for an App Store release: a hosted privacy policy URL (the text is in PRIVACY.md), a support URL (the GitHub issues page can serve), App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).
