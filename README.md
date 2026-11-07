@@ -16,6 +16,8 @@ Also: morning and evening check-ins, XP for logging, a local notification at 8pm
 
 ## Screenshots
 
+Dark mode:
+
 <p>
   <img src="docs/screenshots/today.png" width="190" alt="Today tab with the no Health data notice">
   <img src="docs/screenshots/workouts.png" width="190" alt="Workouts tab with muscle recovery">
@@ -28,7 +30,16 @@ Also: morning and evening check-ins, XP for logging, a local notification at 8pm
   <img src="docs/screenshots/settings.png" width="190" alt="Settings with the Gemini sharing switch">
 </p>
 
-Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. The Workouts, Progress and Muscles Worked screens show one logged gym workout: bench press, pull-up and back squat, 3 sets each. The design is not final.
+Light mode (the app follows the system setting):
+
+<p>
+  <img src="docs/screenshots/today-light.png" width="190" alt="Today tab, light mode">
+  <img src="docs/screenshots/progress-light.png" width="190" alt="Progress tab, light mode">
+  <img src="docs/screenshots/coach-light.png" width="190" alt="Coach tab, light mode">
+  <img src="docs/screenshots/muscles-worked-light.png" width="190" alt="Muscles Worked heatmap, light mode">
+</p>
+
+Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. The Workouts, Progress and Muscles Worked screens show one logged gym workout: bench press, pull-up and back squat, 3 sets each. The body figure on the heatmap is placeholder art built from simple shapes.
 
 ## AI services
 
@@ -74,7 +85,7 @@ Add your name and API key in Settings on first launch.
 - No XP for completing the daily plan, closing rings or logging sleep.
 - The calorie and protein targets are rough rules (weight x 33 kcal, weight x 1.8 g), not a validated formula, and are 0 when Health has no weight.
 - The sleep score is a simple home-made formula from sleep hours and HRV.
-- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Not seen: any Gemini or Ollama reply.
+- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Both light and dark mode were checked on Today, Progress, Muscles Worked, Coach and Settings; the other screens (check-ins, workout logging sheets, camera) were not checked in light mode. Not seen: any Gemini or Ollama reply.
 - Not yet done for an App Store release: a hosted privacy policy URL (the text is in PRIVACY.md), a support URL (the GitHub issues page can serve), App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).

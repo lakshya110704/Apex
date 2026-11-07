@@ -263,6 +263,7 @@ The reference app used a fully anatomical illustration with separately-colored q
 - Simulator run with Health denied showed zeros as real values and a Low recovery score. Fixed: No data, Unknown score, neutral advice. Also fixed "How was today, ?" for a user with no name.
 - Health permission list was missing exercise minutes (read as 0 even with data); added it and a test.
 - Found from simulator screenshots and fixed: the Nutrition Snap a Meal button wrapped its XP label one character per line; the Coach banner said Measured with no data (now No Data until a sleep or HRV reading exists). Both checked on screen, no unit test.
+- Redesign (bold athletic, one blue accent, light and dark following the system): adaptive color tokens in `ApexColor`, heavy condensed titles and numbers, tracked uppercase labels, full-width section cards, blue heatmap scale, Snap a Meal uses the accent. Checked on screen in both modes; the muscle figure is still placeholder art.
 - 24 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
