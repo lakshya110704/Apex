@@ -40,7 +40,7 @@ Calorie, macro, recovery and coaching output is an AI estimate based on the data
 
 ## Your controls
 
-- Turn off "Share data with Google Gemini" in Settings at any time. No request is sent while it is off.
+- Turn off "Share data with Google Gemini" in Settings at any time. No request goes to Google Gemini while it is off.
 - Remove your API key by clearing the key field in Settings and saving.
 - Delete a workout or meal by long-pressing it in the app.
 - Deleting the app removes the on-device database.
