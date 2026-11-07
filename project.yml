@@ -20,6 +20,9 @@ targets:
       - path: Apex
         excludes:
           - "**/*.md"
+    scheme:
+      testTargets:
+        - ApexTests
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lakshya.apex
@@ -53,3 +56,16 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
           UISceneConfigurations: {}
+
+  ApexTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ApexTests
+    dependencies:
+      - target: Apex
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.lakshya.apex.tests

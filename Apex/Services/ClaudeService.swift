@@ -285,7 +285,7 @@ final class ClaudeService {
         return try parseMealAnalysis(from: responseText)
     }
 
-    private func parseMealAnalysis(from text: String) throws -> MealAnalysis {
+    func parseMealAnalysis(from text: String) throws -> MealAnalysis {
         let cleaned = text
             .replacingOccurrences(of: "```json", with: "")
             .replacingOccurrences(of: "```", with: "")

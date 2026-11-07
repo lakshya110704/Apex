@@ -43,12 +43,23 @@
 		C677135683D0A4676A594F29 /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3201E438E229D83003D213 /* WorkoutSession.swift */; };
 		CD5E18B75DC6407297BB3E35 /* MealEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940DAF87AF3C5AAF288D171D /* MealEntry.swift */; };
 		D73C30C1B46C94352E202A6A /* MorningCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC8449A72C5BD029BEE3C8 /* MorningCheckInView.swift */; };
+		D98D4BA4808EE49BA74BDA09 /* LogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7405A3F6350EE9CDF1BAE97 /* LogicTests.swift */; };
 		E3D9D524ED5087357A65CBF5 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA7123ECF75EAB39CE9C0BF /* NotificationService.swift */; };
 		E672247A89A3FBDE60402932 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C048D0D2CC35A988E6B44B /* HealthKitService.swift */; };
 		E68597835288F4A76CB08219 /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5FE467FFBB47D8C7754B45 /* ExercisePickerView.swift */; };
 		E76F6AE51867670FF27D2630 /* WorkoutScheduleEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6E4D41DEEBADADD3078A01 /* WorkoutScheduleEntry.swift */; };
 		FCC1E87764427E7373DEF203 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29AC947F2226D7E67817FF3 /* ClaudeService.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		38A2D8F1FCD000EE2736C46C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E8EADB5E201ECDB1BDB1208 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C3A61A3316FF0E5FFDB48BC5;
+			remoteInfo = Apex;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		08D172ECBAA552236C508936 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
@@ -76,6 +87,7 @@
 		894695B03401DD49DC76CA73 /* FocusTimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerService.swift; sourceTree = "<group>"; };
 		940DAF87AF3C5AAF288D171D /* MealEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEntry.swift; sourceTree = "<group>"; };
 		A29AC947F2226D7E67817FF3 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
+		A7405A3F6350EE9CDF1BAE97 /* LogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTests.swift; sourceTree = "<group>"; };
 		AA6E4D41DEEBADADD3078A01 /* WorkoutScheduleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutScheduleEntry.swift; sourceTree = "<group>"; };
 		B2E1308BEC56BDD3C642A9C7 /* EveningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckInView.swift; sourceTree = "<group>"; };
 		B6CA4A9F0892F09227121BBC /* ApexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexApp.swift; sourceTree = "<group>"; };
@@ -84,6 +96,7 @@
 		BF824F8EE0C29A6043CB42B6 /* FocusTimerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerCard.swift; sourceTree = "<group>"; };
 		C08A82C5BC8AD98DEBA5C0FC /* ExerciseDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseDatabase.swift; sourceTree = "<group>"; };
 		C895330A048082A3D73E7D33 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		CA030E1B0BAE24F5D9128790 /* ApexTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ApexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupTracker.swift; sourceTree = "<group>"; };
 		CBA7123ECF75EAB39CE9C0BF /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		DA3201E438E229D83003D213 /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
@@ -118,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				55DAD81B00BA688F089A40F3 /* Apex.app */,
+				CA030E1B0BAE24F5D9128790 /* ApexTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -156,6 +170,7 @@
 			isa = PBXGroup;
 			children = (
 				6574DECFD41094F3BD0152A5 /* Apex */,
+				AF438100E33577C56013CA6F /* ApexTests */,
 				1B1DA67C24BDDF86376811A6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -243,6 +258,14 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		AF438100E33577C56013CA6F /* ApexTests */ = {
+			isa = PBXGroup;
+			children = (
+				A7405A3F6350EE9CDF1BAE97 /* LogicTests.swift */,
+			);
+			path = ApexTests;
+			sourceTree = "<group>";
+		};
 		B3C8B59DE4D583041ABC2CF1 /* Progress */ = {
 			isa = PBXGroup;
 			children = (
@@ -296,6 +319,24 @@
 			productReference = 55DAD81B00BA688F089A40F3 /* Apex.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D69AC4B940303B8A36805893 /* ApexTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A2FAEDF54A5BA7581082374B /* Build configuration list for PBXNativeTarget "ApexTests" */;
+			buildPhases = (
+				05699B850D1FBEE988CAAA1F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				34D4DCD1BD32EE64236CB445 /* PBXTargetDependency */,
+			);
+			name = ApexTests;
+			packageProductDependencies = (
+			);
+			productName = ApexTests;
+			productReference = CA030E1B0BAE24F5D9128790 /* ApexTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -306,6 +347,9 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					C3A61A3316FF0E5FFDB48BC5 = {
+						DevelopmentTeam = "";
+					};
+					D69AC4B940303B8A36805893 = {
 						DevelopmentTeam = "";
 					};
 				};
@@ -325,11 +369,20 @@
 			projectRoot = "";
 			targets = (
 				C3A61A3316FF0E5FFDB48BC5 /* Apex */,
+				D69AC4B940303B8A36805893 /* ApexTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		05699B850D1FBEE988CAAA1F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D98D4BA4808EE49BA74BDA09 /* LogicTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DC01C96DF2AD4C879811D75 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -380,7 +433,51 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		34D4DCD1BD32EE64236CB445 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C3A61A3316FF0E5FFDB48BC5 /* Apex */;
+			targetProxy = 38A2D8F1FCD000EE2736C46C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0F52950D8B44BBC66927BCC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lakshya.apex.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Apex.app/Apex";
+			};
+			name = Debug;
+		};
+		23E9D8FE0C3D82B1CD6BE6AF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lakshya.apex.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Apex.app/Apex";
+			};
+			name = Release;
+		};
 		4FBD0A8CD0703526858964DE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -559,6 +656,15 @@
 			buildConfigurations = (
 				5C71E832ABEAD9638ACBFAB9 /* Debug */,
 				781CDDDE80B49602541A4B9E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A2FAEDF54A5BA7581082374B /* Build configuration list for PBXNativeTarget "ApexTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F52950D8B44BBC66927BCC0 /* Debug */,
+				23E9D8FE0C3D82B1CD6BE6AF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
