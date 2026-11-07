@@ -44,7 +44,6 @@ struct GymWorkoutView: View {
                         // Session Details
                         ApexSectionCard(title: "Session Details", systemImage: "clock.fill", accentColor: ApexColor.accentCyan) {
                             DatePicker("Date & Time", selection: $date)
-                                .colorScheme(.dark)
                             Divider().background(ApexColor.cardBg2)
                             Stepper("Duration: \(durationMinutes) min", value: $durationMinutes, in: 15...240, step: 5)
                                 .foregroundStyle(ApexColor.textPrimary)
@@ -97,7 +96,6 @@ struct GymWorkoutView: View {
             }
             .navigationTitle("Log Workout")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .onAppear {
                 if let s = prefillSession {
                     date = s.date

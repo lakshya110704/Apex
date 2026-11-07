@@ -69,7 +69,6 @@ struct WorkoutsView: View {
                 }
             }
             .navigationTitle("Workouts")
-            .preferredColorScheme(.dark)
             .sheet(item: $workoutTypeToAdd) { type in
                 if type == .tennis {
                     TennisLogView(gamification: gamification, prefillSession: importedSession)
@@ -138,7 +137,7 @@ struct WorkoutsView: View {
                 } else {
                     Text("Import")
                         .font(.caption.bold())
-                        .foregroundStyle(ApexColor.background)
+                        .foregroundStyle(ApexColor.onAccent)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(ApexColor.accentCyan)
@@ -168,8 +167,7 @@ struct WorkoutsView: View {
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Log Workout")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textSecondary)
+                .apexLabel()
             HStack(spacing: 12) {
                 quickAddButton(type: .tennis, color: ApexColor.tennis)
                 quickAddButton(type: .gym,    color: ApexColor.accent)
@@ -211,8 +209,7 @@ struct WorkoutsView: View {
     private var muscleRecoverySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Muscle Recovery")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textSecondary)
+                .apexLabel()
 
             if let suggestion = MuscleGroupTracker.suggestion(from: muscleStatuses) {
                 suggestionBanner(suggestion)
@@ -304,8 +301,7 @@ struct WorkoutsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("This Week")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ApexColor.textSecondary)
+                    .apexLabel()
                 Spacer()
                 Button {
                     showingScheduleEditor = true
@@ -429,8 +425,7 @@ struct WorkoutsView: View {
     private var workoutHistorySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("History")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textSecondary)
+                .apexLabel()
 
             ForEach(workouts) { workout in
                 workoutRow(workout)

@@ -78,7 +78,6 @@ struct ApexProgressView: View {
                 }
             }
             .navigationTitle("Progress")
-            .preferredColorScheme(.dark)
         }
     }
 
@@ -98,7 +97,7 @@ struct ApexProgressView: View {
                         .foregroundStyle(ApexColor.textSecondary)
                         .tracking(2)
                     Text("\(level)")
-                        .font(.system(size: 64, weight: .black))
+                        .apexDisplay(64)
                         .foregroundStyle(ApexColor.accent)
                 }
                 Spacer()
@@ -164,7 +163,7 @@ struct ApexProgressView: View {
                 .font(.title2)
                 .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
             Text("\(value)")
-                .font(.system(size: 36, weight: .black))
+                .apexDisplay(36)
                 .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
             Text("day\(value == 1 ? "" : "s")")
                 .font(.caption)

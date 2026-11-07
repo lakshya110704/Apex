@@ -77,7 +77,6 @@ struct ExercisePickerView: View {
             .searchable(text: $searchText, prompt: "Search exercises")
             .navigationTitle("Pick Exercise")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

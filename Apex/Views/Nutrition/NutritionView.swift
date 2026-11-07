@@ -33,7 +33,6 @@ struct NutritionView: View {
                         // Date Picker
                         DatePicker("", selection: $selectedDate, displayedComponents: .date)
                             .datePickerStyle(.compact)
-                            .colorScheme(.dark)
                             .padding(.horizontal)
 
                         // Daily Summary
@@ -49,13 +48,15 @@ struct NutritionView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("Snap a Meal")
                                             .font(.subheadline.bold())
-                                        XPBadge(amount: XPValues.logMeal)
+                                        Text("+\(XPValues.logMeal) XP")
+                                            .font(.caption.bold())
+                                            .opacity(0.75)
                                     }
                                     Spacer(minLength: 0)
                                 }
-                                .foregroundStyle(ApexColor.background)
+                                .foregroundStyle(ApexColor.onAccent)
                                 .padding(14)
-                                .background(ApexColor.success)
+                                .background(ApexColor.accent)
                                 .clipShape(RoundedRectangle(cornerRadius: 14))
                             }
                             .frame(maxWidth: .infinity)
@@ -99,7 +100,6 @@ struct NutritionView: View {
                 }
             }
             .navigationTitle("Nutrition")
-            .preferredColorScheme(.dark)
             .sheet(isPresented: $showingCamera) {
                 MealCameraView(claude: claude) { entry in
                     context.insert(entry)
@@ -173,8 +173,7 @@ struct NutritionView: View {
     private var mealsListSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Meals")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textSecondary)
+                .apexLabel()
 
             ForEach(mealsOnDate) { meal in
                 mealRow(meal)
@@ -326,7 +325,7 @@ struct MealTextInputView: View {
                                     Text(isAnalyzing ? "Analyzing..." : "Analyze")
                                         .font(.headline)
                                 }
-                                .foregroundStyle(ApexColor.background)
+                                .foregroundStyle(ApexColor.onAccent)
                                 .frame(maxWidth: .infinity)
                                 .padding(14)
                                 .background(mealText.trimmingCharacters(in: .whitespaces).isEmpty ? ApexColor.success.opacity(0.4) : ApexColor.success)
@@ -356,7 +355,6 @@ struct MealTextInputView: View {
             }
             .navigationTitle("Log Meal")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }.foregroundStyle(ApexColor.textSecondary)

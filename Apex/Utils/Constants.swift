@@ -2,20 +2,38 @@ import SwiftUI
 
 // MARK: - Design System
 
+private extension UIColor {
+    convenience init(hex: UInt32) {
+        self.init(red: CGFloat((hex >> 16) & 0xFF) / 255,
+                  green: CGFloat((hex >> 8) & 0xFF) / 255,
+                  blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    }
+}
+
+private func adaptiveUIColor(light: UInt32, dark: UInt32) -> UIColor {
+    UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) }
+}
+
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(adaptiveUIColor(light: light, dark: dark))
+}
+
+/// One accent (blue). Status colors are only for status. Every color adapts to light and dark.
 enum ApexColor {
-    static let background    = Color(red: 0.04, green: 0.04, blue: 0.06)
-    static let cardBg        = Color(red: 0.08, green: 0.08, blue: 0.13)
-    static let cardBg2       = Color(red: 0.11, green: 0.11, blue: 0.18)
-    static let accent        = Color(red: 0.49, green: 0.36, blue: 0.99)  // #7C5CFC purple
-    static let accentCyan    = Color(red: 0.0,  green: 0.83, blue: 1.0)   // #00D4FF
-    static let success       = Color(red: 0.0,  green: 0.90, blue: 0.46)  // #00E676
-    static let warning       = Color(red: 1.0,  green: 0.70, blue: 0.0)   // #FFB300
-    static let danger        = Color(red: 1.0,  green: 0.27, blue: 0.27)  // #FF4545
-    static let tennis        = Color(red: 0.56, green: 0.93, blue: 0.28)  // #8FEE47
-    static let textPrimary   = Color.white
-    static let textSecondary = Color(red: 0.53, green: 0.53, blue: 0.67)  // #8888AA
-    static let deepPurple    = Color(red: 0.04, green: 0.02, blue: 0.12)  // morning gradient top
-    static let tabBar        = UIColor(red: 0.08, green: 0.08, blue: 0.13, alpha: 1)
+    static let background    = adaptive(light: 0xF2F3F6, dark: 0x0B0C0F)
+    static let cardBg        = adaptive(light: 0xFFFFFF, dark: 0x16181D)
+    static let cardBg2       = adaptive(light: 0xE7E9EE, dark: 0x22252C)
+    static let accent        = adaptive(light: 0x0A5CFF, dark: 0x4C8DFF)
+    static let accentCyan    = accent   // secondary accent retired; kept so call sites stay valid
+    static let success       = adaptive(light: 0x0B8A4A, dark: 0x2FD67B)
+    static let warning       = adaptive(light: 0xC77800, dark: 0xFFB224)
+    static let danger        = adaptive(light: 0xD6303A, dark: 0xFF5C61)
+    static let tennis        = adaptive(light: 0x4F9A00, dark: 0xB8F13F)
+    static let textPrimary   = adaptive(light: 0x0B0C0F, dark: 0xFFFFFF)
+    static let textSecondary = adaptive(light: 0x5E6370, dark: 0x9AA0AE)
+    /// Text drawn on top of an accent or status color fill.
+    static let onAccent      = adaptive(light: 0xFFFFFF, dark: 0x0B0C0F)
+    static let tabBar        = adaptiveUIColor(light: 0xFFFFFF, dark: 0x16181D)
 }
 
 // MARK: - Gamification

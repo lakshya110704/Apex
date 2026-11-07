@@ -129,7 +129,6 @@ struct TodayView: View {
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
-            .preferredColorScheme(.dark)
             .task {
                 await healthKit.requestAuthorization()
                 await calendar.requestAuthorization()
@@ -273,7 +272,7 @@ struct TodayView: View {
                         Button { Task { await generatePlan() } } label: {
                             Text("Generate Plan")
                                 .font(.subheadline.bold())
-                                .foregroundStyle(ApexColor.background)
+                                .foregroundStyle(ApexColor.onAccent)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
                                 .background(ApexColor.accent)

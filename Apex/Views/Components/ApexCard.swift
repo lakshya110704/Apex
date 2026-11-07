@@ -10,11 +10,13 @@ struct ApexSectionCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: systemImage)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(accentColor)
+            HStack(spacing: 6) {
+                Image(systemName: systemImage).foregroundStyle(ApexColor.accent)
+                Text(title).apexLabel()
+            }
             content()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .apexCard()
     }
 }

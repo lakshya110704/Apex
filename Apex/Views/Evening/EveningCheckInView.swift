@@ -39,7 +39,6 @@ struct EveningCheckInView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut, value: step)
         }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Step 0: Mood
@@ -209,7 +208,7 @@ struct EveningCheckInView: View {
                     Button { saveAndDismiss() } label: {
                         Text("See you tomorrow 👋")
                             .font(.headline)
-                            .foregroundStyle(ApexColor.background)
+                            .foregroundStyle(ApexColor.onAccent)
                             .frame(maxWidth: .infinity)
                             .padding(16)
                             .background(ApexColor.accent)
@@ -228,7 +227,7 @@ struct EveningCheckInView: View {
         Button(action: action) {
             Text(label)
                 .font(.headline)
-                .foregroundStyle(ApexColor.background)
+                .foregroundStyle(ApexColor.onAccent)
                 .frame(maxWidth: .infinity)
                 .padding(16)
                 .background(ApexColor.accent)

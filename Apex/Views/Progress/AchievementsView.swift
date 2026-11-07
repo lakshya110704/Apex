@@ -45,15 +45,13 @@ struct AchievementsView: View {
                 }
             }
             .navigationTitle("Achievements")
-            .preferredColorScheme(.dark)
         }
     }
 
     private func achievementSection(title: String, items: [Achievement], isUnlocked: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textSecondary)
+                .apexLabel()
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(items) { achievement in

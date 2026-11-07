@@ -49,7 +49,6 @@ struct ContentView: View {
                 .tag(4)
         }
         .tint(ApexColor.accent)
-        .preferredColorScheme(.dark)
         .fullScreenCover(isPresented: $showMorningCheckIn) {
             MorningCheckInView(healthKit: healthKit, claude: claude)
         }
@@ -79,7 +78,12 @@ struct ContentView: View {
                 }
             }
 
-            // Apply dark tab bar appearance
+            // Heavy condensed large titles
+            UINavigationBar.appearance().largeTitleTextAttributes = [
+                .font: UIFont.systemFont(ofSize: 34, weight: .heavy, width: .condensed)
+            ]
+
+            // Tab bar follows the system appearance
             let appearance = UITabBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = ApexColor.tabBar

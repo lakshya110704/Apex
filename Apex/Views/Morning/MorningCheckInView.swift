@@ -34,12 +34,8 @@ struct MorningCheckInView: View {
     var body: some View {
         ZStack {
             // Background gradient
-            LinearGradient(
-                colors: [ApexColor.deepPurple, ApexColor.background],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            ApexColor.background
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Progress dots
@@ -63,7 +59,6 @@ struct MorningCheckInView: View {
                     .padding(.bottom, 40)
             }
         }
-        .preferredColorScheme(.dark)
         .sheet(isPresented: $showAddProject) {
             addProjectSheet
         }
@@ -100,7 +95,7 @@ struct MorningCheckInView: View {
                         .font(.title2)
                         .foregroundStyle(ApexColor.textSecondary)
                     Text(profile?.name.isEmpty == false ? profile!.name : "Athlete")
-                        .font(.system(size: 48, weight: .black))
+                        .apexDisplay(48)
                         .foregroundStyle(ApexColor.textPrimary)
                 }
 
@@ -146,7 +141,7 @@ struct MorningCheckInView: View {
                 RingView(progress: Double(sleepScore) / 100, color: scoreColor, lineWidth: 18, size: 180)
                 VStack(spacing: 4) {
                     Text("\(sleepScore)")
-                        .font(.system(size: 64, weight: .black))
+                        .apexDisplay(64)
                         .foregroundStyle(scoreColor)
                     Text(recoveryRating.uppercased())
                         .font(.caption.bold())
@@ -415,7 +410,6 @@ struct MorningCheckInView: View {
             }
             .navigationTitle("New Project")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { showAddProject = false }
@@ -450,7 +444,7 @@ struct MorningCheckInView: View {
                         .font(.headline)
                 }
             }
-            .foregroundStyle(ApexColor.background)
+            .foregroundStyle(ApexColor.onAccent)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .background(canAdvance ? ApexColor.accent : ApexColor.cardBg2)

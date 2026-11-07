@@ -4,6 +4,19 @@ import Foundation
 // MARK: - View Modifiers
 
 extension View {
+    /// Heavy condensed face for big numbers and screen titles.
+    func apexDisplay(_ size: CGFloat) -> some View {
+        self.font(.system(size: size, weight: .heavy)).fontWidth(.condensed)
+    }
+
+    /// Small uppercase section label.
+    func apexLabel() -> some View {
+        self.font(.caption.weight(.heavy))
+            .tracking(1.2)
+            .textCase(.uppercase)
+            .foregroundStyle(ApexColor.textSecondary)
+    }
+
     func apexCard(padding: CGFloat = 16) -> some View {
         self
             .padding(padding)

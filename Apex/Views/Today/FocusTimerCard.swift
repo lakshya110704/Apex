@@ -69,7 +69,7 @@ struct FocusTimerCard: View {
             Button { stopSession() } label: {
                 Label("Stop", systemImage: "stop.fill")
                     .font(.subheadline.bold())
-                    .foregroundStyle(ApexColor.background)
+                    .foregroundStyle(ApexColor.onAccent)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .background(ApexColor.danger)

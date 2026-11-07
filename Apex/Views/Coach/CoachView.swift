@@ -142,7 +142,6 @@ struct CoachView: View {
                 }
             }
             .navigationTitle("Apex Coach")
-            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
@@ -245,14 +244,14 @@ struct CoachView: View {
                 Text("Apex Coach")
                     .font(.title2.bold())
                     .foregroundStyle(ApexColor.textPrimary)
-                Text("Objective answers backed by your actual data.\nNo sugarcoating.")
+                Text("Answers based on the data you have logged.")
                     .font(.subheadline)
                     .foregroundStyle(ApexColor.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
             VStack(spacing: 10) {
-                Text("Ask something real")
+                Text("Try asking")
                     .font(.caption.bold())
                     .foregroundStyle(ApexColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)

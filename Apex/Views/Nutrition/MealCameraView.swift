@@ -69,7 +69,6 @@ struct MealCameraView: View {
             }
             .navigationTitle("Log Meal")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -152,7 +151,7 @@ struct MealCameraView: View {
                 } label: {
                     Label("Camera", systemImage: "camera.fill")
                         .font(.subheadline.bold())
-                        .foregroundStyle(ApexColor.background)
+                        .foregroundStyle(ApexColor.onAccent)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(ApexColor.success)

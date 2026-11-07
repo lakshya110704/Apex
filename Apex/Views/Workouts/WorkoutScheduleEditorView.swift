@@ -35,7 +35,6 @@ struct WorkoutScheduleEditorView: View {
             }
             .navigationTitle("Weekly Schedule")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }

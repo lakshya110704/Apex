@@ -103,8 +103,12 @@ enum MuscleGroupTracker {
     }
 
     static let maxHeatSets = 10
-    static let coolColor = Color(red: 0.42, green: 0.40, blue: 0.52)
-    static let hotColor  = ApexColor.danger
+    static func coolColor(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.17, green: 0.19, blue: 0.23) : Color(red: 0.86, green: 0.88, blue: 0.91)
+    }
+    static func hotColor(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.30, green: 0.55, blue: 1.0) : Color(red: 0.04, green: 0.36, blue: 1.0)
+    }
 
     /// Total sets logged per muscle group within the given range.
     static func setCounts(from workouts: [WorkoutSession], range: TimeRange) -> [MuscleGroup: Int] {
@@ -119,8 +123,8 @@ enum MuscleGroupTracker {
         return counts
     }
 
-    static func heatColor(sets: Int) -> Color {
+    static func heatColor(sets: Int, scheme: ColorScheme) -> Color {
         let t = min(Double(sets) / Double(maxHeatSets), 1.0)
-        return .lerp(coolColor, hotColor, t)
+        return .lerp(coolColor(scheme), hotColor(scheme), t)
     }
 }

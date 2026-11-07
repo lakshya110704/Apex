@@ -55,7 +55,6 @@ struct TennisLogView: View {
                         // Session Details
                         ApexSectionCard(title: "Session Details", systemImage: "clock.fill", accentColor: ApexColor.accentCyan) {
                             DatePicker("Date & Time", selection: $date)
-                                .colorScheme(.dark)
                                 .foregroundStyle(ApexColor.textPrimary)
 
                             Divider().background(ApexColor.cardBg2)
@@ -139,7 +138,6 @@ struct TennisLogView: View {
             }
             .navigationTitle("Log Tennis")
             .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(.dark)
             .onAppear {
                 if let s = prefillSession {
                     date = s.date

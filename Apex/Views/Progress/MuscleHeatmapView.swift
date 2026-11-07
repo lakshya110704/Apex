@@ -4,6 +4,7 @@ import SwiftData
 struct MuscleHeatmapView: View {
     @Query(sort: \WorkoutSession.date, order: .reverse) private var workouts: [WorkoutSession]
     @State private var range: MuscleGroupTracker.TimeRange = .allTime
+    @Environment(\.colorScheme) private var scheme
 
     private var setCounts: [MuscleGroup: Int] {
         MuscleGroupTracker.setCounts(from: workouts, range: range)
@@ -36,14 +37,12 @@ struct MuscleHeatmapView: View {
             }
         }
         .navigationTitle("Muscles Worked")
-        .preferredColorScheme(.dark)
     }
 
     private var header: some View {
         HStack {
             Text("Sets by muscle group")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textSecondary)
+                .apexLabel()
             Spacer()
             Menu {
                 ForEach(MuscleGroupTracker.TimeRange.allCases, id: \.self) { option in
@@ -67,7 +66,7 @@ struct MuscleHeatmapView: View {
     private var legend: some View {
         VStack(spacing: 6) {
             LinearGradient(
-                colors: [MuscleGroupTracker.coolColor, MuscleGroupTracker.hotColor],
+                colors: [MuscleGroupTracker.coolColor(scheme), MuscleGroupTracker.hotColor(scheme)],
                 startPoint: .leading, endPoint: .trailing
             )
             .frame(height: 8)
@@ -86,7 +85,7 @@ struct MuscleHeatmapView: View {
             ForEach(MuscleGroupTracker.trackedGroups, id: \.self) { group in
                 HStack {
                     Circle()
-                        .fill(MuscleGroupTracker.heatColor(sets: setCounts[group] ?? 0))
+                        .fill(MuscleGroupTracker.heatColor(sets: setCounts[group] ?? 0, scheme: scheme))
                         .frame(width: 10, height: 10)
                     Text(group.rawValue)
                         .font(.caption)
@@ -116,12 +115,13 @@ private struct BodyFigureView: View {
 
     let facing: Facing
     let setCounts: [MuscleGroup: Int]
+    @Environment(\.colorScheme) private var scheme
 
-    private let mutedColor = Color(white: 0.24)
-    private let outlineColor = Color.black.opacity(0.55)
+    private var mutedColor: Color { MuscleGroupTracker.coolColor(scheme) }
+    private var outlineColor: Color { Color.black.opacity(scheme == .dark ? 0.55 : 0.18) }
 
     private func color(for group: MuscleGroup) -> Color {
-        MuscleGroupTracker.heatColor(sets: setCounts[group] ?? 0)
+        MuscleGroupTracker.heatColor(sets: setCounts[group] ?? 0, scheme: scheme)
     }
 
     @ViewBuilder

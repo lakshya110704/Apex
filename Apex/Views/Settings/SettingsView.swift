@@ -225,7 +225,6 @@ struct SettingsView: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Settings")
-            .preferredColorScheme(.dark)
             .onAppear {
                 nameText = profile?.name ?? ""
                 apiKeyText = claude.apiKey
