@@ -245,7 +245,7 @@ struct EveningCheckInView: View {
 
     private func generateSummary() async {
         step = 2
-        guard !claude.apiKey.isEmpty, !accomplishments.trimmingCharacters(in: .whitespaces).isEmpty else {
+        guard claude.isConfigured, !accomplishments.trimmingCharacters(in: .whitespaces).isEmpty else {
             aiSummary = ""
             tomorrowPriority = "Rest, recover, and show up strong tomorrow."
             return

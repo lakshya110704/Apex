@@ -264,6 +264,9 @@ The reference app used a fully anatomical illustration with separately-colored q
 - Health permission list was missing exercise minutes (read as 0 even with data); added it and a test.
 - Found from simulator screenshots and fixed: the Nutrition Snap a Meal button wrapped its XP label one character per line; the Coach banner said Measured with no data (now No Data until a sleep or HRV reading exists). Both checked on screen, no unit test.
 - Redesign (bold athletic, one blue accent, light and dark following the system): adaptive color tokens in `ApexColor`, heavy condensed titles and numbers, tracked uppercase labels, full-width section cards, blue heatmap scale, Snap a Meal uses the accent. Checked on screen in both modes; the muscle figure is still placeholder art.
+- Replaced the capsule muscle figure with an original anatomical figure (pure CoreGraphics shapes, front and back).
+- Heatmap scale is now blue to red; 0 sets stays neutral.
+- AI providers: Gemini, OpenAI, Claude and Local, each with its own key, model and consent. One request builder and parser per provider, tested offline.
 - 24 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---

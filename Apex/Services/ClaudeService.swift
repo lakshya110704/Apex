@@ -67,104 +67,6 @@ struct MealAnalysis {
     let feedback: String
 }
 
-// MARK: - Gemini API Request/Response
-
-private struct GeminiRequest: Encodable {
-    let contents: [GeminiContent]
-    let systemInstruction: GeminiSystemInstruction?
-    let generationConfig: GeminiGenerationConfig?
-}
-
-private struct GeminiSystemInstruction: Encodable {
-    let parts: [GeminiPart]
-}
-
-private struct GeminiGenerationConfig: Encodable {
-    let maxOutputTokens: Int
-}
-
-private struct GeminiContent: Encodable {
-    let parts: [GeminiPart]
-}
-
-private struct GeminiPart: Encodable {
-    let text: String?
-    let inlineData: GeminiInlineData?
-
-    init(text: String) {
-        self.text = text
-        self.inlineData = nil
-    }
-
-    init(imageData: Data, mimeType: String = "image/jpeg") {
-        self.text = nil
-        self.inlineData = GeminiInlineData(
-            mimeType: mimeType,
-            data: imageData.base64EncodedString()
-        )
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case text
-        case inlineData = "inline_data"
-    }
-}
-
-private struct GeminiInlineData: Encodable {
-    let mimeType: String
-    let data: String
-
-    enum CodingKeys: String, CodingKey {
-        case mimeType = "mime_type"
-        case data
-    }
-}
-
-private struct GeminiResponse: Decodable {
-    let candidates: [GeminiCandidate]?
-
-    var text: String {
-        candidates?.first?.content.parts.first?.text ?? ""
-    }
-}
-
-private struct GeminiCandidate: Decodable {
-    let content: GeminiResponseContent
-}
-
-private struct GeminiResponseContent: Decodable {
-    let parts: [GeminiResponsePart]
-}
-
-private struct GeminiResponsePart: Decodable {
-    let text: String?
-}
-
-// MARK: - Ollama Models
-
-private struct OllamaRequest: Encodable {
-    let model: String
-    let messages: [OllamaMessage]
-    let stream: Bool
-    let format: String?
-    let options: OllamaOptions?
-}
-
-private struct OllamaMessage: Encodable {
-    let role: String
-    let content: String
-}
-
-private struct OllamaOptions: Encodable {
-    let numPredict: Int
-    enum CodingKeys: String, CodingKey { case numPredict = "num_predict" }
-}
-
-private struct OllamaResponse: Decodable {
-    struct OllamaMsg: Decodable { let content: String }
-    let message: OllamaMsg
-}
-
 // MARK: - Service
 
 @Observable
@@ -174,58 +76,108 @@ final class ClaudeService {
     var lastError: String?
     var isCheckingLocalAI = false
 
-    private(set) var apiKey: String = ""
-    private(set) var aiConsentGiven = false
+    private(set) var provider: AIProvider = .gemini
 
     // Local AI (Ollama)
     private(set) var localAIHost: String = ""
     private(set) var localAIPort: Int = 11434
-    private(set) var localAIModel: String = "llama3.2"
     private(set) var isLocalAIAvailable: Bool = false
 
-    private let geminiModel = "gemini-2.5-flash"
-    static let ollamaReasoningHeadroom = 1200
-    private var baseURL: String {
-        "https://generativelanguage.googleapis.com/v1beta/models/\(geminiModel):generateContent"
-    }
+    /// Bumped whenever a key, model or consent value changes so SwiftUI re-reads them.
+    private var revision = 0
+
     private var ollamaBaseURL: String {
         "http://\(localAIHost):\(localAIPort)"
     }
 
     init() {
         let ud = UserDefaults.standard
-        self.apiKey       = KeychainStore.get(UserDefaultsKeys.claudeAPIKey) ?? ""
-        // One-time move of a key saved by earlier builds from UserDefaults into the Keychain.
-        if let legacy = ud.string(forKey: UserDefaultsKeys.claudeAPIKey), !legacy.isEmpty {
-            if apiKey.isEmpty, KeychainStore.set(legacy, for: UserDefaultsKeys.claudeAPIKey) { apiKey = legacy }
-            if KeychainStore.get(UserDefaultsKeys.claudeAPIKey) != nil { ud.removeObject(forKey: UserDefaultsKeys.claudeAPIKey) }
+        // One-time move of a Gemini key saved by earlier builds from UserDefaults into the Keychain.
+        let legacyAccount = AIProvider.gemini.keychainAccount
+        if let legacy = ud.string(forKey: legacyAccount), !legacy.isEmpty {
+            if KeychainStore.get(legacyAccount) == nil { KeychainStore.set(legacy, for: legacyAccount) }
+            if KeychainStore.get(legacyAccount) != nil { ud.removeObject(forKey: legacyAccount) }
         }
-        self.aiConsentGiven = ud.bool(forKey: UserDefaultsKeys.aiConsent)
-        self.localAIHost  = ud.string(forKey: UserDefaultsKeys.localAIHost)   ?? ""
-        self.localAIPort  = ud.integer(forKey: UserDefaultsKeys.localAIPort).nonZeroOr(11434)
-        self.localAIModel = ud.string(forKey: UserDefaultsKeys.localAIModel)  ?? "llama3.2"
+        self.localAIHost = ud.string(forKey: UserDefaultsKeys.localAIHost) ?? ""
+        self.localAIPort = ud.integer(forKey: UserDefaultsKeys.localAIPort).nonZeroOr(11434)
+        // The saved choice wins. Otherwise keep what earlier builds did: Gemini, or the local server if that was the only thing set up.
+        if let saved = ud.string(forKey: UserDefaultsKeys.aiProvider), let chosen = AIProvider(rawValue: saved) {
+            self.provider = chosen
+        } else if KeychainStore.get(legacyAccount) == nil, localAIHost.isNotEmpty {
+            self.provider = .local
+        }
         // Re-check connectivity on every launch so UI is never stuck disabled
         Task { await checkLocalAIAvailability() }
     }
 
-    func setAPIKey(_ key: String) {
-        apiKey = key
-        KeychainStore.set(key, for: UserDefaultsKeys.claudeAPIKey)
+    // MARK: Provider, keys, models, consent
+
+    func setProvider(_ chosen: AIProvider) {
+        provider = chosen
+        UserDefaults.standard.set(chosen.rawValue, forKey: UserDefaultsKeys.aiProvider)
+        revision += 1
     }
 
-    func setAIConsent(_ given: Bool) {
-        aiConsentGiven = given
-        UserDefaults.standard.set(given, forKey: UserDefaultsKeys.aiConsent)
+    /// Key for the selected provider.
+    var apiKey: String { apiKey(for: provider) }
+
+    func apiKey(for target: AIProvider) -> String {
+        _ = revision
+        return KeychainStore.get(target.keychainAccount) ?? ""
+    }
+
+    func setAPIKey(_ key: String) { setAPIKey(key, for: provider) }
+
+    func setAPIKey(_ key: String, for target: AIProvider) {
+        KeychainStore.set(key, for: target.keychainAccount)
+        revision += 1
+    }
+
+    func model(for target: AIProvider) -> String {
+        _ = revision
+        let saved = UserDefaults.standard.string(forKey: target.modelDefaultsKey) ?? ""
+        return saved.isEmpty ? target.defaultModel : saved
+    }
+
+    func setModel(_ name: String, for target: AIProvider) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            UserDefaults.standard.removeObject(forKey: target.modelDefaultsKey)
+        } else {
+            UserDefaults.standard.set(trimmed, forKey: target.modelDefaultsKey)
+        }
+        revision += 1
+    }
+
+    var localAIModel: String { model(for: .local) }
+
+    /// Consent for the selected provider.
+    var aiConsentGiven: Bool { consent(for: provider) }
+
+    func consent(for target: AIProvider) -> Bool {
+        _ = revision
+        return UserDefaults.standard.bool(forKey: target.consentDefaultsKey)
+    }
+
+    func setAIConsent(_ given: Bool) { setConsent(given, for: provider) }
+
+    func setConsent(_ given: Bool, for target: AIProvider) {
+        UserDefaults.standard.set(given, forKey: target.consentDefaultsKey)
+        revision += 1
+    }
+
+    /// True when the selected provider can be called right now.
+    var isConfigured: Bool {
+        provider.isCloud ? !apiKey.isEmpty : isLocalAIAvailable
     }
 
     func setLocalAI(host: String, port: Int, model: String) {
         let ud = UserDefaults.standard
-        localAIHost  = host.trimmingCharacters(in: .whitespacesAndNewlines)
-        localAIPort  = port
-        localAIModel = model.trimmingCharacters(in: .whitespacesAndNewlines)
-        ud.set(localAIHost,  forKey: UserDefaultsKeys.localAIHost)
-        ud.set(port,         forKey: UserDefaultsKeys.localAIPort)
-        ud.set(localAIModel, forKey: UserDefaultsKeys.localAIModel)
+        localAIHost = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        localAIPort = port
+        ud.set(localAIHost, forKey: UserDefaultsKeys.localAIHost)
+        ud.set(port,        forKey: UserDefaultsKeys.localAIPort)
+        setModel(model, for: .local)
         Task { await checkLocalAIAvailability() }
     }
 
@@ -259,16 +211,11 @@ final class ClaudeService {
         Protein/carbs/fat are in grams. Be direct and honest in feedback — no food suggestions, just analysis of what they ate.
         """
 
-        let request = GeminiRequest(
-            contents: [GeminiContent(parts: [
-                GeminiPart(imageData: jpegData),
-                GeminiPart(text: "Analyze this meal. Respond with JSON only.")
-            ])],
-            systemInstruction: GeminiSystemInstruction(parts: [GeminiPart(text: systemPrompt)]),
-            generationConfig: GeminiGenerationConfig(maxOutputTokens: 300)
-        )
-
-        let responseText = try await sendRequest(request)
+        let responseText = try await send(AIRequestSpec(
+            system: systemPrompt,
+            messages: [AIMessage(role: .user, text: "Analyze this meal. Respond with JSON only.")],
+            maxTokens: 300, wantsJSON: true, imageJPEG: jpegData
+        ))
         return try parseMealAnalysis(from: responseText)
     }
 
@@ -280,21 +227,11 @@ final class ClaudeService {
         """
         let userText = "Estimate macros for this meal: \(description)"
 
-        if isLocalAIAvailable {
-            let text = try await sendOllamaRequest(
-                systemPrompt: systemPrompt,
-                messages: [OllamaMessage(role: "user", content: userText)],
-                maxTokens: 300, forceJSON: true
-            )
-            return try parseMealAnalysis(from: text)
-        }
-
-        let request = GeminiRequest(
-            contents: [GeminiContent(parts: [GeminiPart(text: userText)])],
-            systemInstruction: GeminiSystemInstruction(parts: [GeminiPart(text: systemPrompt)]),
-            generationConfig: GeminiGenerationConfig(maxOutputTokens: 300)
-        )
-        let responseText = try await sendRequest(request)
+        let responseText = try await send(AIRequestSpec(
+            system: systemPrompt,
+            messages: [AIMessage(role: .user, text: userText)],
+            maxTokens: 300, wantsJSON: true
+        ))
         return try parseMealAnalysis(from: responseText)
     }
 
@@ -355,20 +292,11 @@ final class ClaudeService {
         22:00 | evening | Wind down and journaling
         """
 
-        if isLocalAIAvailable {
-            return try await sendOllamaRequest(
-                systemPrompt: ollamaSystemPrompt,
-                messages: [OllamaMessage(role: "user", content: contextText)],
-                maxTokens: 800, forceJSON: false
-            )
-        }
-
-        let request = GeminiRequest(
-            contents: [GeminiContent(parts: [GeminiPart(text: contextText)])],
-            systemInstruction: GeminiSystemInstruction(parts: [GeminiPart(text: geminiPrompt)]),
-            generationConfig: GeminiGenerationConfig(maxOutputTokens: 1024)
-        )
-        return try await sendRequest(request)
+        return try await send(AIRequestSpec(
+            system: provider == .local ? ollamaSystemPrompt : geminiPrompt,
+            messages: [AIMessage(role: .user, text: contextText)],
+            maxTokens: provider == .local ? 800 : 1024
+        ))
     }
 
     // MARK: - Chat
@@ -377,24 +305,8 @@ final class ClaudeService {
         let systemPrompt = buildCoachSystemPrompt(context: context)
         let filtered = messages.filter { $0.role != .system }
 
-        if isLocalAIAvailable {
-            let ollamaMessages = filtered.map {
-                OllamaMessage(role: $0.role == .user ? "user" : "assistant", content: $0.content)
-            }
-            return try await sendOllamaRequest(
-                systemPrompt: systemPrompt,
-                messages: ollamaMessages,
-                maxTokens: 400
-            )
-        }
-
-        let contents = filtered.map { GeminiContent(parts: [GeminiPart(text: $0.content)]) }
-        let request = GeminiRequest(
-            contents: contents,
-            systemInstruction: GeminiSystemInstruction(parts: [GeminiPart(text: systemPrompt)]),
-            generationConfig: GeminiGenerationConfig(maxOutputTokens: 400)
-        )
-        return try await sendRequest(request)
+        let aiMessages = filtered.map { AIMessage(role: $0.role == .user ? .user : .assistant, text: $0.content) }
+        return try await send(AIRequestSpec(system: systemPrompt, messages: aiMessages, maxTokens: 400))
     }
 
     private func buildCoachSystemPrompt(context: ApexContext) -> String {
@@ -505,98 +417,34 @@ final class ClaudeService {
         return lines.joined(separator: "\n")
     }
 
-    // MARK: - Ollama Core
+    // MARK: - Send
 
-    private func sendOllamaRequest(systemPrompt: String, messages: [OllamaMessage], maxTokens: Int, forceJSON: Bool = false) async throws -> String {
-        guard let url = URL(string: "\(ollamaBaseURL)/api/chat") else { throw ClaudeError.networkError }
-
-        var allMessages = [OllamaMessage(role: "system", content: systemPrompt)]
-        allMessages += messages
-
-        let body = OllamaRequest(
-            model: localAIModel,
-            messages: allMessages,
-            stream: false,
-            format: forceJSON ? "json" : nil,
-            // Reasoning models (gpt-oss) spend tokens thinking before the visible reply; without headroom the reply comes back empty.
-            options: OllamaOptions(numPredict: maxTokens + Self.ollamaReasoningHeadroom)
-        )
-
-        var req = URLRequest(url: url, timeoutInterval: 90)
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try JSONEncoder().encode(body)
+    private func send(_ spec: AIRequestSpec) async throws -> String {
+        let key = apiKey
+        if provider.isCloud {
+            guard !key.isEmpty else { throw ClaudeError.noAPIKey(provider.displayName) }
+            guard aiConsentGiven else { throw ClaudeError.consentRequired(provider.company) }
+        } else {
+            guard localAIHost.isNotEmpty else { throw ClaudeError.networkError }
+        }
 
         isLoading = true
         defer { isLoading = false }
 
-        let (data, response) = try await URLSession.shared.data(for: req)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw ClaudeError.networkError
-        }
-        let decoded = try JSONDecoder().decode(OllamaResponse.self, from: data)
-        return decoded.message.content
-    }
-
-    // MARK: - Gemini Core
-
-    private func sendRequest(_ body: GeminiRequest) async throws -> String {
-        guard apiKey.isNotEmpty else { throw ClaudeError.noAPIKey }
-        guard aiConsentGiven else { throw ClaudeError.consentRequired }
-
-        isLoading = true
-        defer { isLoading = false }
-
-        guard let url = URL(string: baseURL) else {
-            throw ClaudeError.networkError
-        }
-
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
-        urlRequest.httpBody = try JSONEncoder().encode(body)
+        let request = try provider.urlRequest(spec, apiKey: key, model: model(for: provider), localBaseURL: ollamaBaseURL)
 
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: urlRequest)
+            (data, response) = try await URLSession.shared.data(for: request)
         } catch is URLError {
             throw ClaudeError.networkError
         }
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ClaudeError.networkError
+        guard let http = response as? HTTPURLResponse else { throw ClaudeError.networkError }
+        guard http.statusCode == 200 else {
+            throw ClaudeError.apiError(http.statusCode, String(data: data, encoding: .utf8) ?? "")
         }
-        guard httpResponse.statusCode == 200 else {
-            let bodyStr = String(data: data, encoding: .utf8) ?? ""
-            throw ClaudeError.apiError(httpResponse.statusCode, bodyStr)
-        }
-
-        let geminiResponse = try JSONDecoder().decode(GeminiResponse.self, from: data)
-        return geminiResponse.text
-    }
-}
-
-// MARK: - Errors
-
-enum ClaudeError: LocalizedError {
-    case noAPIKey
-    case consentRequired
-    case imageConversionFailed
-    case parseError
-    case networkError
-    case apiError(Int, String)
-
-    var errorDescription: String? {
-        switch self {
-        case .noAPIKey:              return "No API key. Add your Google AI key in Settings."
-        case .imageConversionFailed: return "Failed to process image."
-        case .parseError:            return "Could not parse the response."
-        case .consentRequired:       return "Turn on AI data sharing in Settings first. Your health summary and meal photos are sent to Google Gemini."
-        case .networkError:          return "No connection to the AI service. Check your internet and try again."
-        case .apiError(429, _):      return "AI quota reached. Wait a bit and try again."
-        case .apiError(let code, _): return "API error \(code). Check your key in Settings."
-        }
+        return try provider.parseReply(data)
     }
 }

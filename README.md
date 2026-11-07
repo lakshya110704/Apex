@@ -43,11 +43,20 @@ Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery 
 
 ## AI services
 
-- **Gemini** (`gemini-2.5-flash`, Google AI REST API). Needs your own API key, entered in Settings. Used for meal analysis, daily plan and coach chat. Meal photos and the health/context summary are sent to Google when you use these features.
-- **Ollama (optional)**. If you enter a LAN address in Settings and it responds, text requests go to your own Ollama server instead. Meal photo analysis always uses Gemini. Ollama requests get 1,200 extra tokens so reasoning models such as `gpt-oss:20b` do not use the whole limit on hidden thinking and return an empty reply. I checked this with the same request shape sent by `curl` to `gpt-oss:20b` (valid JSON back at a 1,500 token limit, empty reply at 300). I have not run the app itself against an Ollama server.
-- The class is named `ClaudeService` for historical reasons. It does not call Anthropic.
+You pick one provider in Settings and bring your own key. Apex has no server of its own: requests go from the phone straight to the provider.
 
-Gemini calls are off until you turn on "Share data with Google Gemini" in Settings. The key is stored in the iOS Keychain on the device, is sent in a request header, and is never part of the source.
+| Provider | Default model | Photos | Notes |
+|---|---|---|---|
+| Google Gemini | `gemini-2.5-flash` | yes | key from Google AI Studio |
+| OpenAI | `gpt-4o-mini` | yes | chat completions API |
+| Anthropic Claude | `claude-haiku-5-5` | yes | messages API |
+| Local (Ollama) | `llama3.2` | no | your own server, nothing leaves your network |
+
+The model name is editable per provider. Keys are stored in the iOS Keychain, one per provider, and are sent in request headers, never in a URL. Sharing is a separate switch per cloud provider and is off until you turn it on. Meal photo analysis needs a cloud provider; with Local, use Type it out.
+
+Reasoning models spend tokens thinking before the visible reply, so Gemini, OpenAI and Local requests get 1,200 extra tokens of headroom. I checked this for Ollama with the same request shape sent by `curl` to `gpt-oss:20b` (valid JSON back at a 1,500 token limit, empty reply at 300). A paid "Apex AI" option could be added later as one more provider.
+
+Verified by tests only: each provider's request shape (URL, headers, body, image block) and reply parsing, offline. Not yet run against the real OpenAI, Anthropic or Gemini APIs, or against an Ollama server from the app itself. The class is still named `ClaudeService` for historical reasons and is provider-neutral.
 
 ## Stack
 
@@ -75,17 +84,17 @@ xcodegen generate   # optional, the .xcodeproj is committed
 open Apex.xcodeproj
 ```
 
-Add your name and API key in Settings on first launch.
+Add your name, then choose an AI provider and add its key in Settings.
 
 ## Status
 
 - Builds with Xcode 27.2 for the iOS 18.0 simulator.
-- Unit tests: 24 run, 24 pass, 0 fail (iOS 18.0 simulator). Run them ad-hoc signed, because the Keychain test needs an entitlement that unsigned builds lack: `xcodebuild test -project Apex.xcodeproj -scheme Apex -destination 'platform=iOS Simulator,name=<your simulator>' CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO`. With `CODE_SIGNING_ALLOWED=NO` the Keychain test fails (last unsigned run: 21 tests, 4 failures, all that test). They cover the data and logic layer only: levels, streaks, XP, achievements, muscle tracker, exercise list, meal JSON parsing, AI consent gate, error messages, Keychain storage and migration, and missing-Health-data handling, and that every Health type the app reads is in the permission list.
-- Not covered by tests and not verified by me: HealthKit and Apple Watch data, the 8pm notification, camera, calendar, GitHub, and real Gemini or Ollama calls. These need a device, a key or a local server.
+- Unit tests: 34 run, 34 pass, 0 fail (iOS 18.0 simulator). Run them ad-hoc signed, because the Keychain test needs an entitlement that unsigned builds lack: `xcodebuild test -project Apex.xcodeproj -scheme Apex -destination 'platform=iOS Simulator,name=<your simulator>' CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO`. With `CODE_SIGNING_ALLOWED=NO` the Keychain test fails (last unsigned run: 21 tests, 4 failures, all that test). They cover the data and logic layer only: levels, streaks, XP, achievements, muscle tracker, exercise list, meal JSON parsing, AI consent gate, error messages, Keychain storage and migration, and missing-Health-data handling, that every Health type the app reads is in the permission list, the muscle figure regions, the heat scale, and each AI provider's request and reply handling (offline).
+- Not covered by tests and not verified by me: HealthKit and Apple Watch data, the 8pm notification, camera, calendar, GitHub, and real calls to Gemini, OpenAI, Claude or Ollama. These need a device, a key or a local server.
 - No XP for completing the daily plan, closing rings or logging sleep.
 - The calorie and protein targets are rough rules (weight x 33 kcal, weight x 1.8 g), not a validated formula, and are 0 when Health has no weight.
 - The sleep score is a simple home-made formula from sleep hours and HRV.
-- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Both light and dark mode were checked on Today, Progress, Muscles Worked, Coach and Settings; the other screens (check-ins, workout logging sheets, camera) were not checked in light mode. Not seen: any Gemini or Ollama reply.
+- Seen on a simulator screen (iOS 18.0): app icon, first-run Health, notification and calendar prompts, the check-in with Health denied, the Today notice, the Workouts muscle recovery list, Nutrition, Progress, the Muscles Worked heatmap, Coach (the banner shows No Data until there is a sleep or HRV reading) and Settings (including the Gemini sharing switch). Both light and dark mode were checked on Today, Progress, Muscles Worked, Coach and Settings; the other screens (check-ins, workout logging sheets, camera) were not checked in light mode. Not seen: any real AI reply.
 - Not yet done for an App Store release: a hosted privacy policy URL (the text is in PRIVACY.md), a support URL (the GitHub issues page can serve), App Store listing and TestFlight setup (needs an Apple Developer account and a team ID).
 
 History and design notes are in [DEVLOG.md](DEVLOG.md).

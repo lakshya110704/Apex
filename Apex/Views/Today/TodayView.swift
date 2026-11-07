@@ -215,7 +215,7 @@ struct TodayView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(ApexColor.accent)
                 Spacer()
-                let aiReady = claude.isLocalAIAvailable || !claude.apiKey.isEmpty
+                let aiReady = claude.isConfigured
                 Button {
                     Task { await generatePlan() }
                 } label: {
@@ -261,10 +261,10 @@ struct TodayView: View {
                     Image(systemName: "calendar.badge.clock")
                         .font(.system(size: 32))
                         .foregroundStyle(ApexColor.accent.opacity(0.4))
-                    let aiReady = claude.isLocalAIAvailable || claude.apiKey.isNotEmpty
+                    let aiReady = claude.isConfigured
                     Text(aiReady
                          ? "Generate a personalized plan for today."
-                         : "Add your Google AI key in Settings, or connect Ollama to enable AI planning.")
+                         : "Choose an AI provider and add its key in Settings to enable AI planning.")
                         .font(.subheadline)
                         .foregroundStyle(ApexColor.textSecondary)
                         .multilineTextAlignment(.center)

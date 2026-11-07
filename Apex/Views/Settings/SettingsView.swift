@@ -11,6 +11,7 @@ struct SettingsView: View {
 
     @State private var nameText = ""
     @State private var apiKeyText = ""
+    @State private var modelText = ""
     @State private var githubText = ""
     @State private var showAPIKey = false
     @State private var showingOnboarding = false
@@ -58,144 +59,28 @@ struct SettingsView: View {
                             .foregroundStyle(ApexColor.textSecondary)
                     }
 
-                    // AI data sharing
+                    // AI provider
                     Section {
-                        Toggle("Share data with Google Gemini", isOn: Binding(
-                            get: { claude.aiConsentGiven },
-                            set: { claude.setAIConsent($0) }
-                        ))
+                        Picker("Provider", selection: Binding(
+                            get: { claude.provider },
+                            set: { choose($0) }
+                        )) {
+                            ForEach(AIProvider.allCases) { Text($0.displayName).tag($0) }
+                        }
                         .foregroundStyle(ApexColor.textPrimary)
                         .tint(ApexColor.accent)
                         .listRowBackground(ApexColor.cardBg)
                     } header: {
-                        Text("AI data sharing").foregroundStyle(ApexColor.textSecondary)
+                        Text("AI provider").foregroundStyle(ApexColor.textSecondary)
                     } footer: {
-                        Text("When on, your health and activity summary, calendar event titles, meal photos and chat messages are sent to Google's Gemini API using your own key. Off by default. A local Ollama server does not send data to Google. AI output is an estimate, not medical or dietary advice.")
+                        Text("Bring your own key for Gemini, OpenAI or Claude, or run a local Ollama server. Apex has no server of its own: requests go from this phone straight to the provider you pick. AI output is an estimate, not medical or dietary advice.")
                             .foregroundStyle(ApexColor.textSecondary)
                     }
 
-                    // API Key Section
-                    Section {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                if showAPIKey {
-                                    TextField("AIza...", text: $apiKeyText)
-                                        .font(.system(.caption, design: .monospaced))
-                                        .foregroundStyle(ApexColor.textPrimary)
-                                        .autocorrectionDisabled()
-                                        .textInputAutocapitalization(.never)
-                                } else {
-                                    SecureField("AIza...", text: $apiKeyText)
-                                        .font(.system(.caption, design: .monospaced))
-                                        .foregroundStyle(ApexColor.textPrimary)
-                                        .autocorrectionDisabled()
-                                        .textInputAutocapitalization(.never)
-                                }
-                                Button {
-                                    showAPIKey.toggle()
-                                } label: {
-                                    Image(systemName: showAPIKey ? "eye.slash" : "eye")
-                                        .foregroundStyle(ApexColor.textSecondary)
-                                }
-                            }
-                            .onSubmit { saveAPIKey() }
-
-                            if claude.apiKey.isNotEmpty {
-                                Label("Key saved", systemImage: "checkmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(ApexColor.success)
-                            }
-                        }
-                        .listRowBackground(ApexColor.cardBg)
-
-                        Button("Save API Key") { saveAPIKey() }
-                            .foregroundStyle(ApexColor.accent)
-                            .listRowBackground(ApexColor.cardBg)
-
-                        Link(destination: URL(string: "https://aistudio.google.com/apikey")!) {
-                            Label("Get your free API key →", systemImage: "key.fill")
-                                .font(.subheadline)
-                                .foregroundStyle(ApexColor.accent)
-                        }
-                        .listRowBackground(ApexColor.cardBg)
-                    } header: {
-                        Text("Google AI (Required for meal analysis + planning)").foregroundStyle(ApexColor.textSecondary)
-                    } footer: {
-                        Text("Your API key is stored locally on your device and never shared.").foregroundStyle(ApexColor.textSecondary)
-                    }
-
-                    // Local AI Section
-                    Section {
-                        // Status row
-                        HStack {
-                            Text("Status")
-                                .foregroundStyle(ApexColor.textSecondary)
-                            Spacer()
-                            if claude.isCheckingLocalAI {
-                                HStack(spacing: 6) {
-                                    ProgressView().scaleEffect(0.7)
-                                    Text("Checking…").font(.caption).foregroundStyle(ApexColor.textSecondary)
-                                }
-                            } else if localHostText.isEmpty {
-                                Text("Not configured").font(.caption).foregroundStyle(ApexColor.textSecondary)
-                            } else if claude.isLocalAIAvailable {
-                                Label("Connected — \(claude.localAIModel)", systemImage: "checkmark.circle.fill")
-                                    .font(.caption.bold()).foregroundStyle(ApexColor.success)
-                            } else {
-                                Label("Unreachable", systemImage: "xmark.circle.fill")
-                                    .font(.caption.bold()).foregroundStyle(ApexColor.danger)
-                            }
-                        }
-                        .listRowBackground(ApexColor.cardBg)
-
-                        HStack {
-                            Text("PC IP Address")
-                                .foregroundStyle(ApexColor.textSecondary)
-                            Spacer()
-                            TextField("192.168.1.x", text: $localHostText)
-                                .multilineTextAlignment(.trailing)
-                                .foregroundStyle(ApexColor.textPrimary)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .keyboardType(.numbersAndPunctuation)
-                                .onSubmit { saveLocalAI() }
-                        }
-                        .listRowBackground(ApexColor.cardBg)
-
-                        HStack {
-                            Text("Port")
-                                .foregroundStyle(ApexColor.textSecondary)
-                            Spacer()
-                            TextField("11434", text: $localPortText)
-                                .multilineTextAlignment(.trailing)
-                                .foregroundStyle(ApexColor.textPrimary)
-                                .keyboardType(.numberPad)
-                                .onSubmit { saveLocalAI() }
-                        }
-                        .listRowBackground(ApexColor.cardBg)
-
-                        HStack {
-                            Text("Model")
-                                .foregroundStyle(ApexColor.textSecondary)
-                            Spacer()
-                            TextField("llama3.2", text: $localModelText)
-                                .multilineTextAlignment(.trailing)
-                                .foregroundStyle(ApexColor.textPrimary)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .onSubmit { saveLocalAI() }
-                        }
-                        .listRowBackground(ApexColor.cardBg)
-
-                        Button("Save & Check Connection") { saveLocalAI() }
-                            .foregroundStyle(ApexColor.accentCyan)
-                            .listRowBackground(ApexColor.cardBg)
-
-                    } header: {
-                        Text("Local AI (Ollama)").foregroundStyle(ApexColor.textSecondary)
-                    } footer: {
-                        Text("Run Ollama on your PC with OLLAMA_HOST=0.0.0.0. When connected, the coach runs fully locally — no API needed. Gemini is the fallback when away from home.")
-                            .foregroundStyle(ApexColor.textSecondary)
+                    if claude.provider.isCloud {
+                        cloudProviderSection(claude.provider)
+                    } else {
+                        localProviderSection
                     }
 
                     // Stats Section
@@ -227,11 +112,11 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .onAppear {
                 nameText = profile?.name ?? ""
-                apiKeyText = claude.apiKey
+                loadProviderFields()
                 githubText = profile?.githubUsername ?? ""
                 localHostText = claude.localAIHost
                 localPortText = claude.localAIPort == 0 ? "11434" : "\(claude.localAIPort)"
-                localModelText = claude.localAIModel.isNotEmpty ? claude.localAIModel : "llama3.2"
+                localModelText = claude.localAIModel
                 if localHostText.isNotEmpty {
                     Task { await claude.checkLocalAIAvailability() }
                 }
@@ -263,9 +148,169 @@ struct SettingsView: View {
         }
     }
 
-    private func saveAPIKey() {
-        let trimmed = apiKeyText.trimmingCharacters(in: .whitespacesAndNewlines)
-        claude.setAPIKey(trimmed)
+    private func choose(_ provider: AIProvider) {
+        claude.setProvider(provider)
+        loadProviderFields()
+    }
+
+    private func loadProviderFields() {
+        apiKeyText = claude.apiKey
+        modelText = claude.provider.isCloud ? claude.model(for: claude.provider) : ""
+        showAPIKey = false
+    }
+
+    private func saveCloudProvider() {
+        let provider = claude.provider
+        claude.setAPIKey(apiKeyText.trimmingCharacters(in: .whitespacesAndNewlines), for: provider)
+        claude.setModel(modelText == provider.defaultModel ? "" : modelText, for: provider)
+    }
+
+    @ViewBuilder
+    private func cloudProviderSection(_ provider: AIProvider) -> some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    if showAPIKey {
+                        TextField(provider.keyPlaceholder, text: $apiKeyText)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(ApexColor.textPrimary)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                    } else {
+                        SecureField(provider.keyPlaceholder, text: $apiKeyText)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(ApexColor.textPrimary)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                    }
+                    Button {
+                        showAPIKey.toggle()
+                    } label: {
+                        Image(systemName: showAPIKey ? "eye.slash" : "eye")
+                            .foregroundStyle(ApexColor.textSecondary)
+                    }
+                }
+                .onSubmit { saveCloudProvider() }
+
+                if claude.apiKey(for: provider).isNotEmpty {
+                    Label("Key saved", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(ApexColor.success)
+                }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            HStack {
+                Text("Model").foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                TextField(provider.defaultModel, text: $modelText)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onSubmit { saveCloudProvider() }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            Button("Save key and model") { saveCloudProvider() }
+                .foregroundStyle(ApexColor.accent)
+                .listRowBackground(ApexColor.cardBg)
+
+            if let url = provider.keyURL {
+                Link(destination: url) {
+                    Label("Get an API key", systemImage: "key.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(ApexColor.accent)
+                }
+                .listRowBackground(ApexColor.cardBg)
+            }
+
+            Toggle("Share data with \(provider.company)", isOn: Binding(
+                get: { claude.consent(for: provider) },
+                set: { claude.setConsent($0, for: provider) }
+            ))
+            .foregroundStyle(ApexColor.textPrimary)
+            .tint(ApexColor.accent)
+            .listRowBackground(ApexColor.cardBg)
+        } header: {
+            Text("\(provider.displayName) key").foregroundStyle(ApexColor.textSecondary)
+        } footer: {
+            Text("When sharing is on, your health and activity summary, calendar event titles, meal photos and chat messages are sent to \(provider.company) using your own key. Off by default. The key is stored in this device's Keychain.")
+                .foregroundStyle(ApexColor.textSecondary)
+        }
+    }
+
+    private var localProviderSection: some View {
+        Section {
+            HStack {
+                Text("Status")
+                    .foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                if claude.isCheckingLocalAI {
+                    HStack(spacing: 6) {
+                        ProgressView().scaleEffect(0.7)
+                        Text("Checking…").font(.caption).foregroundStyle(ApexColor.textSecondary)
+                    }
+                } else if localHostText.isEmpty {
+                    Text("Not configured").font(.caption).foregroundStyle(ApexColor.textSecondary)
+                } else if claude.isLocalAIAvailable {
+                    Label("Connected: \(claude.localAIModel)", systemImage: "checkmark.circle.fill")
+                        .font(.caption.bold()).foregroundStyle(ApexColor.success)
+                } else {
+                    Label("Unreachable", systemImage: "xmark.circle.fill")
+                        .font(.caption.bold()).foregroundStyle(ApexColor.danger)
+                }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            HStack {
+                Text("Server address")
+                    .foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                TextField("192.168.1.x", text: $localHostText)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.numbersAndPunctuation)
+                    .onSubmit { saveLocalAI() }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            HStack {
+                Text("Port")
+                    .foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                TextField("11434", text: $localPortText)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .keyboardType(.numberPad)
+                    .onSubmit { saveLocalAI() }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            HStack {
+                Text("Model")
+                    .foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                TextField("llama3.2", text: $localModelText)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onSubmit { saveLocalAI() }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            Button("Save and check connection") { saveLocalAI() }
+                .foregroundStyle(ApexColor.accent)
+                .listRowBackground(ApexColor.cardBg)
+        } header: {
+            Text("Local AI (Ollama)").foregroundStyle(ApexColor.textSecondary)
+        } footer: {
+            Text("Run Ollama on your own computer with OLLAMA_HOST=0.0.0.0. Nothing leaves your network. Meal photo analysis is not available with a local model; use Type it out or a cloud provider.")
+                .foregroundStyle(ApexColor.textSecondary)
+        }
     }
 
     private func saveLocalAI() {

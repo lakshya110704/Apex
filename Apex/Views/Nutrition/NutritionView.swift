@@ -434,8 +434,8 @@ struct MealTextInputView: View {
     }
 
     private func analyze() async {
-        guard !claude.apiKey.isEmpty else {
-            errorMessage = "Add your Google AI key in Settings to analyze meals."
+        guard claude.isConfigured else {
+            errorMessage = "Set up an AI provider in Settings to analyze meals."
             return
         }
         isAnalyzing = true

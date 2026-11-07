@@ -557,7 +557,7 @@ struct MorningCheckInView: View {
 
     private func generateMotivation() async {
         guard motivation.isEmpty else { return }
-        guard !claude.apiKey.isEmpty else {
+        guard claude.isConfigured else {
             motivation = motivationFallback()
             return
         }

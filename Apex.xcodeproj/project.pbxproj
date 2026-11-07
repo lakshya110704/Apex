@@ -44,6 +44,7 @@
 		BE1DDFC1FB4ADF680B48CD86 /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2233CD1A9D8612F2FA8E2712 /* AchievementsView.swift */; };
 		BE2889311AB1CFA2A0DC8550 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1BA7047897CB5AADB4D2DB /* SettingsView.swift */; };
 		C1C90C2EC4AD4116085616A2 /* GymWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABC7E4D09A3039B623EC74B /* GymWorkoutView.swift */; };
+		C45E0947DE4FC6902BAFF090 /* AIProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F4A0E06D6A0C2DD085C20E /* AIProviders.swift */; };
 		C677135683D0A4676A594F29 /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3201E438E229D83003D213 /* WorkoutSession.swift */; };
 		CD5E18B75DC6407297BB3E35 /* MealEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940DAF87AF3C5AAF288D171D /* MealEntry.swift */; };
 		D73C30C1B46C94352E202A6A /* MorningCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC8449A72C5BD029BEE3C8 /* MorningCheckInView.swift */; };
@@ -93,6 +94,7 @@
 		940DAF87AF3C5AAF288D171D /* MealEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEntry.swift; sourceTree = "<group>"; };
 		A29AC947F2226D7E67817FF3 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
 		A7405A3F6350EE9CDF1BAE97 /* LogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTests.swift; sourceTree = "<group>"; };
+		A8F4A0E06D6A0C2DD085C20E /* AIProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviders.swift; sourceTree = "<group>"; };
 		AA6E4D41DEEBADADD3078A01 /* WorkoutScheduleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutScheduleEntry.swift; sourceTree = "<group>"; };
 		B2E1308BEC56BDD3C642A9C7 /* EveningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckInView.swift; sourceTree = "<group>"; };
 		B6CA4A9F0892F09227121BBC /* ApexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexApp.swift; sourceTree = "<group>"; };
@@ -300,6 +302,7 @@
 		D99AFF91A664777607B8998A /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A8F4A0E06D6A0C2DD085C20E /* AIProviders.swift */,
 				3EDEE14B1460503750A7B368 /* CalendarService.swift */,
 				A29AC947F2226D7E67817FF3 /* ClaudeService.swift */,
 				894695B03401DD49DC76CA73 /* FocusTimerService.swift */,
@@ -412,6 +415,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C45E0947DE4FC6902BAFF090 /* AIProviders.swift in Sources */,
 				2B433A1AD9FD07A89C676858 /* Achievement.swift in Sources */,
 				BE1DDFC1FB4ADF680B48CD86 /* AchievementsView.swift in Sources */,
 				6FC2A35194B1FA60949A5020 /* ActivityRingsView.swift in Sources */,

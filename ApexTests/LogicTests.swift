@@ -189,8 +189,10 @@ final class LogicTests: XCTestCase {
 
     func testGeminiCallIsBlockedWithoutConsent() async {
         let ai = ClaudeService()
+        let oldProvider = ai.provider
+        ai.setProvider(.gemini)
         let oldKey = ai.apiKey, oldConsent = ai.aiConsentGiven
-        defer { ai.setAPIKey(oldKey); ai.setAIConsent(oldConsent) }
+        defer { ai.setAPIKey(oldKey); ai.setAIConsent(oldConsent); ai.setProvider(oldProvider) }
         ai.setAPIKey("test-key")
         ai.setAIConsent(false)
         do {
@@ -207,7 +209,9 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(ClaudeError.apiError(429, "").errorDescription, "AI quota reached. Wait a bit and try again.")
         XCTAssertTrue(ClaudeError.apiError(400, "").errorDescription?.contains("400") == true)
         XCTAssertTrue(ClaudeError.networkError.errorDescription?.contains("internet") == true)
-        XCTAssertTrue(ClaudeError.consentRequired.errorDescription?.contains("Settings") == true)
+        XCTAssertTrue(ClaudeError.consentRequired("OpenAI").errorDescription?.contains("OpenAI") == true)
+        XCTAssertTrue(ClaudeError.noAPIKey("Anthropic Claude").errorDescription?.contains("Anthropic Claude") == true)
+        XCTAssertTrue(ClaudeError.imagesNotSupported("Local (Ollama)").errorDescription?.contains("Type it out") == true)
     }
 
     // MARK: Streak bonuses and check-in run
@@ -333,5 +337,155 @@ final class LogicTests: XCTestCase {
             XCTAssertEqual(MuscleGroupTracker.heatColor(sets: 0, scheme: scheme), MuscleGroupTracker.coolColor(scheme))
             XCTAssertEqual(MuscleGroupTracker.heatColor(sets: 25, scheme: scheme), MuscleGroupTracker.heatColor(sets: 10, scheme: scheme))
         }
+    }
+
+    // MARK: AI providers
+
+    private func spec(image: Bool = false, json: Bool = false) -> AIRequestSpec {
+        AIRequestSpec(
+            system: "sys",
+            messages: [AIMessage(role: .user, text: "hi"), AIMessage(role: .assistant, text: "yo"), AIMessage(role: .user, text: "again")],
+            maxTokens: 300, wantsJSON: json, imageJPEG: image ? Data([1, 2, 3]) : nil
+        )
+    }
+
+    private func body(_ request: URLRequest) throws -> [String: Any] {
+        try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+    }
+
+    func testKeysTravelInHeadersNeverTheURL() throws {
+        for provider in AIProvider.allCases where provider.isCloud {
+            let request = try provider.urlRequest(spec(), apiKey: "SECRET-KEY", model: provider.defaultModel)
+            XCTAssertFalse(request.url!.absoluteString.contains("SECRET-KEY"), "\(provider) puts the key in the URL")
+            XCTAssertTrue((request.allHTTPHeaderFields ?? [:]).values.joined().contains("SECRET-KEY"), "\(provider) sends no key")
+            XCTAssertEqual(request.httpMethod, "POST")
+        }
+    }
+
+    func testGeminiRequestShape() throws {
+        let request = try AIProvider.gemini.urlRequest(spec(image: true), apiKey: "K", model: "gemini-test")
+        XCTAssertEqual(request.url?.host, "generativelanguage.googleapis.com")
+        XCTAssertTrue(request.url!.path.hasSuffix("gemini-test:generateContent"))
+        XCTAssertEqual(request.value(forHTTPHeaderField: "x-goog-api-key"), "K")
+        let json = try body(request)
+        let contents = try XCTUnwrap(json["contents"] as? [[String: Any]])
+        XCTAssertEqual(contents.map { $0["role"] as? String }, ["user", "model", "user"])
+        XCTAssertEqual((contents[0]["parts"] as? [Any])?.count, 1)
+        let lastParts = try XCTUnwrap(contents[2]["parts"] as? [[String: Any]])
+        XCTAssertEqual(lastParts.count, 2, "image goes on the last user message")
+        XCTAssertEqual((lastParts[1]["inline_data"] as? [String: Any])?["mime_type"] as? String, "image/jpeg")
+        XCTAssertNotNil(json["systemInstruction"])
+        XCTAssertEqual((json["generationConfig"] as? [String: Any])?["maxOutputTokens"] as? Int, 300 + AIProvider.reasoningHeadroom)
+    }
+
+    func testOpenAIRequestShape() throws {
+        let request = try AIProvider.openai.urlRequest(spec(image: true, json: true), apiKey: "K", model: "gpt-test")
+        XCTAssertEqual(request.url?.absoluteString, "https://api.openai.com/v1/chat/completions")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer K")
+        let json = try body(request)
+        XCTAssertEqual(json["model"] as? String, "gpt-test")
+        let messages = try XCTUnwrap(json["messages"] as? [[String: Any]])
+        XCTAssertEqual(messages.map { $0["role"] as? String }, ["system", "user", "assistant", "user"])
+        let last = try XCTUnwrap(messages[3]["content"] as? [[String: Any]])
+        let url = try XCTUnwrap((last[1]["image_url"] as? [String: Any])?["url"] as? String)
+        XCTAssertTrue(url.hasPrefix("data:image/jpeg;base64,"))
+        XCTAssertEqual((json["response_format"] as? [String: Any])?["type"] as? String, "json_object")
+        XCTAssertEqual(json["max_completion_tokens"] as? Int, 300 + AIProvider.reasoningHeadroom)
+        let plain = try body(AIProvider.openai.urlRequest(spec(), apiKey: "K", model: "m"))
+        XCTAssertNil(plain["response_format"])
+    }
+
+    func testAnthropicRequestShape() throws {
+        let request = try AIProvider.anthropic.urlRequest(spec(image: true), apiKey: "K", model: "claude-test")
+        XCTAssertEqual(request.url?.absoluteString, "https://api.anthropic.com/v1/messages")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "x-api-key"), "K")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "anthropic-version"), "2023-06-01")
+        let json = try body(request)
+        XCTAssertEqual(json["system"] as? String, "sys")
+        XCTAssertEqual(json["max_tokens"] as? Int, 300)
+        let messages = try XCTUnwrap(json["messages"] as? [[String: Any]])
+        XCTAssertEqual(messages.map { $0["role"] as? String }, ["user", "assistant", "user"])
+        let blocks = try XCTUnwrap(messages[2]["content"] as? [[String: Any]])
+        XCTAssertEqual(blocks[0]["type"] as? String, "image")
+        let source = try XCTUnwrap(blocks[0]["source"] as? [String: Any])
+        XCTAssertEqual(source["media_type"] as? String, "image/jpeg")
+        XCTAssertEqual(source["type"] as? String, "base64")
+    }
+
+    func testLocalRequestShapeAndNoImages() throws {
+        let request = try AIProvider.local.urlRequest(spec(json: true), apiKey: "", model: "llama-test", localBaseURL: "http://10.0.0.5:11434")
+        XCTAssertEqual(request.url?.absoluteString, "http://10.0.0.5:11434/api/chat")
+        let json = try body(request)
+        XCTAssertEqual(json["model"] as? String, "llama-test")
+        XCTAssertEqual(json["stream"] as? Bool, false)
+        XCTAssertEqual(json["format"] as? String, "json")
+        XCTAssertEqual((json["options"] as? [String: Any])?["num_predict"] as? Int, 300 + AIProvider.reasoningHeadroom)
+        XCTAssertThrowsError(try AIProvider.local.urlRequest(spec(image: true), apiKey: "", model: "m", localBaseURL: "http://x"))
+    }
+
+    func testReplyParsingPerProvider() throws {
+        func data(_ s: String) -> Data { Data(s.utf8) }
+        XCTAssertEqual(try AIProvider.gemini.parseReply(data(#"{"candidates":[{"content":{"parts":[{"text":"hel"},{"text":"lo"}]}}]}"#)), "hello")
+        XCTAssertEqual(try AIProvider.openai.parseReply(data(#"{"choices":[{"message":{"content":"hello"}}]}"#)), "hello")
+        XCTAssertEqual(try AIProvider.anthropic.parseReply(data(#"{"content":[{"type":"thinking","thinking":"x"},{"type":"text","text":"hel"},{"type":"text","text":"lo"}]}"#)), "hello")
+        XCTAssertEqual(try AIProvider.local.parseReply(data(#"{"message":{"content":"hello"}}"#)), "hello")
+        for provider in AIProvider.allCases {
+            XCTAssertThrowsError(try provider.parseReply(data("not json")), "\(provider) accepted garbage")
+            XCTAssertThrowsError(try provider.parseReply(data("{}")), "\(provider) accepted an empty reply")
+        }
+        XCTAssertThrowsError(try AIProvider.local.parseReply(data(#"{"message":{"content":"","thinking":"hidden"}}"#)))
+    }
+
+    func testProviderKeysModelsAndConsentAreSeparate() {
+        let ai = ClaudeService()
+        let providers: [AIProvider] = [.gemini, .openai, .anthropic]
+        let oldKeys = providers.map { ai.apiKey(for: $0) }
+        let oldConsent = providers.map { ai.consent(for: $0) }
+        defer {
+            for (i, p) in providers.enumerated() { ai.setAPIKey(oldKeys[i], for: p); ai.setConsent(oldConsent[i], for: p); ai.setModel("", for: p) }
+        }
+        ai.setAPIKey("g-key", for: .gemini)
+        ai.setAPIKey("o-key", for: .openai)
+        ai.setAPIKey("a-key", for: .anthropic)
+        XCTAssertEqual([ai.apiKey(for: .gemini), ai.apiKey(for: .openai), ai.apiKey(for: .anthropic)], ["g-key", "o-key", "a-key"])
+        XCTAssertEqual(AIProvider.gemini.keychainAccount, "apex_claude_api_key", "Gemini keeps the account earlier builds used")
+
+        ai.setConsent(true, for: .openai)
+        ai.setConsent(false, for: .anthropic)
+        XCTAssertTrue(ai.consent(for: .openai))
+        XCTAssertFalse(ai.consent(for: .anthropic))
+
+        XCTAssertEqual(ai.model(for: .openai), AIProvider.openai.defaultModel)
+        ai.setModel("gpt-custom", for: .openai)
+        XCTAssertEqual(ai.model(for: .openai), "gpt-custom")
+        ai.setModel("  ", for: .openai)
+        XCTAssertEqual(ai.model(for: .openai), AIProvider.openai.defaultModel)
+    }
+
+    func testMissingKeyAndConsentErrorsNameTheProvider() async {
+        let ai = ClaudeService()
+        let oldProvider = ai.provider, oldKey = ai.apiKey(for: .openai), oldConsent = ai.consent(for: .openai)
+        defer { ai.setAPIKey(oldKey, for: .openai); ai.setConsent(oldConsent, for: .openai); ai.setProvider(oldProvider) }
+        ai.setProvider(.openai)
+        ai.setAPIKey("", for: .openai)
+        XCTAssertFalse(ai.isConfigured)
+        do {
+            _ = try await ai.analyzeMealText("oats")
+            XCTFail("expected noAPIKey")
+        } catch let error as ClaudeError {
+            guard case .noAPIKey(let name) = error else { return XCTFail("got \(error)") }
+            XCTAssertEqual(name, "OpenAI")
+        } catch { XCTFail("unexpected \(error)") }
+
+        ai.setAPIKey("k", for: .openai)
+        ai.setConsent(false, for: .openai)
+        XCTAssertTrue(ai.isConfigured)
+        do {
+            _ = try await ai.analyzeMealText("oats")
+            XCTFail("expected consentRequired")
+        } catch let error as ClaudeError {
+            guard case .consentRequired(let company) = error else { return XCTFail("got \(error)") }
+            XCTAssertEqual(company, "OpenAI")
+        } catch { XCTFail("unexpected \(error)") }
     }
 }

@@ -274,8 +274,8 @@ struct MealCameraView: View {
     // MARK: - Actions
 
     private func analyzeImage(_ image: UIImage) async {
-        guard !claude.apiKey.isEmpty else {
-            errorMessage = "Add your Anthropic API key in Settings to analyze meals."
+        guard claude.isConfigured else {
+            errorMessage = "Set up an AI provider in Settings to analyze meals."
             return
         }
         isAnalyzing = true

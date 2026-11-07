@@ -358,7 +358,7 @@ struct CoachView: View {
     // MARK: - Input Bar
 
     private var canSend: Bool {
-        claude.apiKey.isNotEmpty || claude.isLocalAIAvailable
+        claude.isConfigured
     }
 
     private var inputBar: some View {
