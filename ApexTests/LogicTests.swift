@@ -268,4 +268,14 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(KeychainStore.get(name), "legacy-key")
         XCTAssertNil(ud.string(forKey: name), "plaintext copy should be removed")
     }
+
+    // MARK: Missing Health data
+
+    func testNoHealthDataIsUnknownNotLow() {
+        XCTAssertEqual(MorningCheckIn.sleepScore(hours: 0, hrv: 0), 0)
+        XCTAssertEqual(MorningCheckIn.recoveryRating(score: 0), "Unknown")
+        XCTAssertEqual(MorningCheckIn.sleepScore(hours: 7.5, hrv: 100), 100)
+        XCTAssertEqual(MorningCheckIn.recoveryRating(score: 15), "Low")
+        XCTAssertGreaterThan(MorningCheckIn.sleepScore(hours: 8, hrv: 0), 0)   // sleep alone still scores
+    }
 }

@@ -18,7 +18,10 @@ struct EveningCheckInView: View {
     @State private var tomorrowPriority = ""
 
     private var profile: UserProfile? { profiles.first }
-    private var firstName: String { profile?.name.components(separatedBy: " ").first ?? "there" }
+    private var firstName: String {
+        let first = profile?.name.components(separatedBy: " ").first ?? ""
+        return first.isEmpty ? "there" : first
+    }
 
     private var todayFocusMinutes: Int {
         focusSessions.filter { $0.date.isToday }.reduce(0) { $0 + $1.durationMinutes }

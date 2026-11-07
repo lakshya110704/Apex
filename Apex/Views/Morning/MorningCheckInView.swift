@@ -113,9 +113,9 @@ struct MorningCheckInView: View {
                 statRow(icon: "moon.zzz.fill", color: ApexColor.accent,
                         label: "Sleep", value: sleepFormatted)
                 statRow(icon: "heart.fill", color: ApexColor.danger,
-                        label: "Resting HR", value: "\(Int(healthKit.restingHeartRate)) bpm")
+                        label: "Resting HR", value: healthKit.restingHeartRate > 0 ? "\(Int(healthKit.restingHeartRate)) bpm" : "No data")
                 statRow(icon: "waveform.path.ecg", color: ApexColor.accentCyan,
-                        label: "HRV", value: "\(Int(healthKit.hrv)) ms")
+                        label: "HRV", value: healthKit.hrv > 0 ? "\(Int(healthKit.hrv)) ms" : "No data")
             }
             .padding(20)
             .background(ApexColor.cardBg)
@@ -158,8 +158,8 @@ struct MorningCheckInView: View {
             // Sleep breakdown
             HStack(spacing: 20) {
                 sleepStat(label: "Duration", value: sleepFormatted, color: ApexColor.accent)
-                sleepStat(label: "HRV", value: "\(Int(healthKit.hrv))ms", color: ApexColor.accentCyan)
-                sleepStat(label: "RHR", value: "\(Int(healthKit.restingHeartRate))bpm", color: ApexColor.danger)
+                sleepStat(label: "HRV", value: healthKit.hrv > 0 ? "\(Int(healthKit.hrv))ms" : "No data", color: ApexColor.accentCyan)
+                sleepStat(label: "RHR", value: healthKit.restingHeartRate > 0 ? "\(Int(healthKit.restingHeartRate))bpm" : "No data", color: ApexColor.danger)
             }
             .padding(16)
             .background(ApexColor.cardBg)
@@ -507,6 +507,7 @@ struct MorningCheckInView: View {
     }
 
     private var sleepFormatted: String {
+        guard healthKit.sleepHoursLast > 0 else { return "No data" }
         let h = Int(healthKit.sleepHoursLast)
         let m = Int((healthKit.sleepHoursLast - Double(h)) * 60)
         return "\(h)h \(m)m"
@@ -525,6 +526,7 @@ struct MorningCheckInView: View {
         case "Peak":     return "Your body is fully charged. Push hard today — you earned it."
         case "High":     return "Solid recovery. Good intensity is on the table today."
         case "Moderate": return "Decent recovery. Keep workout intensity moderate."
+        case "Unknown":  return "No sleep or HRV data yet. Decide today's intensity by how you feel."
         default:         return "Your body needs care today. Keep it light and focus on your projects."
         }
     }

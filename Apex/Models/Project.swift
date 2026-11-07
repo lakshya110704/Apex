@@ -75,6 +75,7 @@ final class MorningCheckIn {
     }
 
     static func sleepScore(hours: Double, hrv: Double) -> Int {
+        guard hours > 0 || hrv > 0 else { return 0 }   // no Health data, not a bad night
         var score = 0
         // Sleep duration (60 pts)
         switch hours {
@@ -97,6 +98,7 @@ final class MorningCheckIn {
 
     static func recoveryRating(score: Int) -> String {
         switch score {
+        case ...0: return "Unknown"
         case 80...: return "Peak"
         case 60..<80: return "High"
         case 40..<60: return "Moderate"
