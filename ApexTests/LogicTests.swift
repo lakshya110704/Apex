@@ -538,5 +538,7 @@ final class LogicTests: XCTestCase {
         let anthropic = Data(#"{"data":[{"id":"claude-b"},{"id":"claude-a"}]}"#.utf8)
         XCTAssertEqual(AIProvider.anthropic.parseModels(anthropic), ["claude-a", "claude-b"])
         XCTAssertEqual(AIProvider.gemini.parseModels(Data("nope".utf8)), [])
+        let mixed = Data(#"{"models":[{"name":"models/gemma-1","supportedGenerationMethods":["generateContent"]},{"name":"models/gemini-z","supportedGenerationMethods":["generateContent"]}]}"#.utf8)
+        XCTAssertEqual(AIProvider.gemini.parseModels(mixed), ["gemini-z", "gemma-1"], "gemini models come first")
     }
 }

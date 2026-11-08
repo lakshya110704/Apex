@@ -311,6 +311,10 @@ extension AIProvider {
         case .local:
             ids = []
         }
-        return Array(Set(ids)).sorted()
+        // Gemini's own models first, then the rest, each group alphabetical.
+        return Array(Set(ids)).sorted { x, y in
+            let rx = x.hasPrefix("gemini") ? 0 : 1, ry = y.hasPrefix("gemini") ? 0 : 1
+            return rx != ry ? rx < ry : x < y
+        }
     }
 }

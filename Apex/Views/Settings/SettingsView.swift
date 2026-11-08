@@ -12,7 +12,7 @@ struct SettingsView: View {
     @State private var nameText = ""
     @State private var apiKeyText = ""
     @State private var modelText = ""
-    @State private var showSavedNotice = false
+    @State private var savedNotice: String?
     @State private var saveCount = 0
     @State private var isTesting = false
     @State private var testResult: (ok: Bool, text: String)?
@@ -168,20 +168,41 @@ struct SettingsView: View {
         testResult = nil
         foundModels = []
         modelsError = nil
-        showSavedNotice = false
+        savedNotice = nil
+        loadModelsIfKeySaved()
+    }
+
+    private func showNotice(_ text: String) {
+        savedNotice = text
+        saveCount += 1
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            withAnimation { if savedNotice == text { savedNotice = nil } }
+        }
     }
 
     private func saveCloudProvider() {
         let provider = claude.provider
-        claude.setAPIKey(apiKeyText.trimmingCharacters(in: .whitespacesAndNewlines), for: provider)
+        claude.setAPIKey(typedKey, for: provider)
         claude.setModel(modelText == provider.defaultModel ? "" : modelText, for: provider)
-        saveCount += 1
         testResult = nil
-        withAnimation { showSavedNotice = true }
-        Task {
-            try? await Task.sleep(for: .seconds(3))
-            withAnimation { showSavedNotice = false }
-        }
+        withAnimation { showNotice(typedKey.isEmpty ? "Key removed" : "Key and model updated") }
+        foundModels = []
+        modelsError = nil
+        loadModelsIfKeySaved()
+    }
+
+    private func chooseModel(_ name: String, for provider: AIProvider) {
+        modelText = name
+        claude.setModel(name == provider.defaultModel ? "" : name, for: provider)
+        testResult = nil
+        withAnimation { showNotice("Model updated") }
+    }
+
+    private func loadModelsIfKeySaved() {
+        guard claude.provider.isCloud, !claude.apiKey.isEmpty else { return }
+        let key = claude.apiKey
+        Task { await loadModels(key: key) }
     }
 
     private var typedKey: String { apiKeyText.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -189,8 +210,8 @@ struct SettingsView: View {
     @ViewBuilder
     private func keyStatus(_ provider: AIProvider) -> some View {
         let saved = claude.apiKey(for: provider)
-        if showSavedNotice {
-            Label("Key and model updated", systemImage: "checkmark.circle.fill")
+        if let notice = savedNotice {
+            Label(notice, systemImage: "checkmark.circle.fill")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(ApexColor.success)
         } else if typedKey.isEmpty && !saved.isEmpty {
@@ -198,7 +219,7 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(ApexColor.textSecondary)
         } else if !typedKey.isEmpty && typedKey != saved {
-            Label("Not saved yet. Tap Save key and model.", systemImage: "exclamationmark.circle.fill")
+            Label("Not saved yet. Tap Save key.", systemImage: "exclamationmark.circle.fill")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(ApexColor.warning)
         } else if !saved.isEmpty {
@@ -221,16 +242,76 @@ struct SettingsView: View {
         }
     }
 
-    private func findModels() async {
+    private func loadModels(key: String) async {
         modelsError = nil
-        guard !typedKey.isEmpty else { modelsError = "Enter a key first."; return }
         isFindingModels = true
         defer { isFindingModels = false }
         do {
-            foundModels = try await claude.listModels(apiKey: typedKey)
+            foundModels = try await claude.listModels(apiKey: key)
         } catch {
             foundModels = []
             modelsError = error.localizedDescription
+        }
+    }
+
+    @ViewBuilder
+    private func modelRow(_ provider: AIProvider) -> some View {
+        if isFindingModels {
+            HStack {
+                Text("Model").foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                ProgressView().scaleEffect(0.8)
+            }
+            .listRowBackground(ApexColor.cardBg)
+        } else if !foundModels.isEmpty {
+            Picker("Model", selection: Binding(
+                get: { modelText },
+                set: { chooseModel($0, for: provider) }
+            )) {
+                if !foundModels.contains(modelText) {
+                    Text("\(modelText) (not available)").tag(modelText)
+                }
+                ForEach(foundModels, id: \.self) { Text($0).tag($0) }
+            }
+            .foregroundStyle(ApexColor.textPrimary)
+            .tint(ApexColor.accent)
+            .listRowBackground(ApexColor.cardBg)
+
+            if !foundModels.contains(modelText) {
+                Label("This key can't use \(modelText). Pick another model.", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ApexColor.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowBackground(ApexColor.cardBg)
+            }
+        } else {
+            HStack {
+                Text("Model").foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                TextField(provider.defaultModel, text: $modelText)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(ApexColor.textPrimary)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onSubmit { saveCloudProvider() }
+            }
+            .listRowBackground(ApexColor.cardBg)
+
+            if let error = modelsError {
+                Label(error, systemImage: "xmark.octagon.fill")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowBackground(ApexColor.cardBg)
+                Button("Reload models") { loadModelsIfKeySaved() }
+                    .foregroundStyle(ApexColor.accent)
+                    .listRowBackground(ApexColor.cardBg)
+            } else {
+                Text("The model list appears here once a valid key is saved.")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.textSecondary)
+                    .listRowBackground(ApexColor.cardBg)
+            }
         }
     }
 
@@ -265,21 +346,11 @@ struct SettingsView: View {
             }
             .listRowBackground(ApexColor.cardBg)
 
-            HStack {
-                Text("Model").foregroundStyle(ApexColor.textSecondary)
-                Spacer()
-                TextField(provider.defaultModel, text: $modelText)
-                    .multilineTextAlignment(.trailing)
-                    .foregroundStyle(ApexColor.textPrimary)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .onSubmit { saveCloudProvider() }
-            }
-            .listRowBackground(ApexColor.cardBg)
-
-            Button("Save key and model") { saveCloudProvider() }
+            Button("Save key") { saveCloudProvider() }
                 .foregroundStyle(ApexColor.accent)
                 .listRowBackground(ApexColor.cardBg)
+
+            modelRow(provider)
 
             Button {
                 Task { await runTest() }
@@ -297,38 +368,6 @@ struct SettingsView: View {
                 Label(result.text, systemImage: result.ok ? "checkmark.circle.fill" : "xmark.octagon.fill")
                     .font(.caption)
                     .foregroundStyle(result.ok ? ApexColor.success : ApexColor.danger)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .listRowBackground(ApexColor.cardBg)
-            }
-
-            Button {
-                Task { await findModels() }
-            } label: {
-                HStack {
-                    Text("Find available models")
-                    if isFindingModels { ProgressView().scaleEffect(0.8) }
-                }
-            }
-            .disabled(isFindingModels)
-            .foregroundStyle(ApexColor.accent)
-            .listRowBackground(ApexColor.cardBg)
-
-            if !foundModels.isEmpty {
-                Picker("Choose a model", selection: Binding(
-                    get: { modelText },
-                    set: { modelText = $0; saveCloudProvider() }
-                )) {
-                    ForEach(foundModels, id: \.self) { Text($0).tag($0) }
-                }
-                .foregroundStyle(ApexColor.textPrimary)
-                .tint(ApexColor.accent)
-                .listRowBackground(ApexColor.cardBg)
-            }
-
-            if let error = modelsError {
-                Label(error, systemImage: "xmark.octagon.fill")
-                    .font(.caption)
-                    .foregroundStyle(ApexColor.danger)
                     .fixedSize(horizontal: false, vertical: true)
                     .listRowBackground(ApexColor.cardBg)
             }

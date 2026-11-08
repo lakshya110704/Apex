@@ -268,7 +268,7 @@ The reference app used a fully anatomical illustration with separately-colored q
 - Heatmap scale is now blue to red; 0 sets stays neutral.
 - AI providers: Gemini, OpenAI, Claude and Local, each with its own key, model and consent. One request builder and parser per provider, tested offline.
 - Today is now a dashboard (next-up hero with a snapping plan carousel, quick actions, tiles that open sheets). Motion rules used: feedback is immediate, springs can be interrupted, Reduce Motion is respected, haptics only on selection. Other tabs still use the older list layout.
-- A user got a 404 after adding a Gemini key and the Key saved label never changed. Added: provider error text shown in errors, a Test connection button, Find available models (lists what the key can use), and honest key status (Not saved yet, then Key and model updated). I could not reproduce the 404 without a key; Google's own pages disagree on when gemini-2.5-flash retires.
+- A user got a 404 after adding a Gemini key and the Key saved label never changed. Added: provider error text shown in errors, a Test connection button, honest key status (Not saved yet, then Key and model updated), and an automatic model list: after a key is saved Model becomes a picker of what the key can use (free text only as a fallback). I could not reproduce the 404 without a key; Google's own pages disagree on when gemini-2.5-flash retires.
 - 37 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
