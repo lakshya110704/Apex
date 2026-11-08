@@ -35,6 +35,14 @@ struct ApexTile<Content: View>: View {
     }
 }
 
+/// How much of the week's plan has been done.
+enum WeekPlan {
+    /// A planned session counts as done when a workout of that type was logged that day.
+    static func progress(planned: [(day: Int, type: WorkoutType)], doneByDay: [Int: Set<WorkoutType>]) -> (done: Int, total: Int) {
+        (planned.filter { doneByDay[$0.day]?.contains($0.type) == true }.count, planned.count)
+    }
+}
+
 /// Picks which block of the day plan comes next.
 enum PlanTiming {
     /// Minutes since midnight for "HH:MM", or nil if it is not a time.

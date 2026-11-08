@@ -541,4 +541,17 @@ final class LogicTests: XCTestCase {
         let mixed = Data(#"{"models":[{"name":"models/gemma-1","supportedGenerationMethods":["generateContent"]},{"name":"models/gemini-z","supportedGenerationMethods":["generateContent"]}]}"#.utf8)
         XCTAssertEqual(AIProvider.gemini.parseModels(mixed), ["gemini-z", "gemma-1"], "gemini models come first")
     }
+
+    // MARK: Week plan
+
+    func testWeekPlanProgress() {
+        let planned: [(day: Int, type: WorkoutType)] = [(2, .gym), (2, .tennis), (4, .gym), (6, .run)]
+        let done: [Int: Set<WorkoutType>] = [2: [.gym], 4: [.gym, .tennis], 5: [.run]]
+        let result = WeekPlan.progress(planned: planned, doneByDay: done)
+        XCTAssertEqual(result.total, 4)
+        XCTAssertEqual(result.done, 2, "Monday gym and Wednesday gym count; Monday tennis, and a run on the wrong day, do not")
+        let none = WeekPlan.progress(planned: [], doneByDay: done)
+        XCTAssertEqual(none.total, 0)
+        XCTAssertEqual(none.done, 0)
+    }
 }
