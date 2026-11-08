@@ -34,12 +34,10 @@ Light mode (the app follows the system setting):
 
 <p>
   <img src="docs/screenshots/today-light.png" width="190" alt="Today tab, light mode">
-  <img src="docs/screenshots/progress-light.png" width="190" alt="Progress tab, light mode">
-  <img src="docs/screenshots/coach-light.png" width="190" alt="Coach tab, light mode">
   <img src="docs/screenshots/muscles-worked-light.png" width="190" alt="Muscles Worked heatmap, light mode">
 </p>
 
-Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. The Workouts, Progress and Muscles Worked screens show one logged gym workout: bench press, pull-up and back squat, 3 sets each. The plan on the Today screenshots is a hand-written sample, not AI output, because no API key was set. The Settings screenshot shows the provider picker with OpenAI selected and no key.
+Taken on the iOS 18.0 simulator, so there is no Health data (rings and recovery numbers read 0 or "No data") and no API key. Sample data was inserted for these shots and is not real use: one gym workout (bench press, pull-up, back squat, 3 sets each), a six-session weekly plan on Workouts, and six sample meals on Nutrition. The plan on the Today screenshot is a hand-written sample, not AI output. The light mode shots are of Today and the muscle map only; I did not retake the others in light mode after the redesign. Settings shows the provider picker with OpenAI selected and no key.
 
 ## AI services
 
