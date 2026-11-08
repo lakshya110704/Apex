@@ -35,6 +35,19 @@ struct ApexTile<Content: View>: View {
     }
 }
 
+/// Which of the last N days had any logged activity.
+enum ActiveDays {
+    /// Oldest first, ending today. A day is active if any date falls on it.
+    static func lastDays(_ count: Int, dates: [Date], today: Date = Date()) -> [(day: Date, active: Bool)] {
+        let cal = Calendar.current
+        let logged = Set(dates.map { cal.startOfDay(for: $0) })
+        let start = cal.startOfDay(for: today)
+        return (0..<max(count, 0)).reversed().compactMap { offset in
+            cal.date(byAdding: .day, value: -offset, to: start).map { ($0, logged.contains($0)) }
+        }
+    }
+}
+
 /// Share of calories from each macro (protein 4, carbs 4, fat 9 kcal per gram).
 enum MacroSplit {
     static func shares(protein: Double, carbs: Double, fat: Double) -> (protein: Double, carbs: Double, fat: Double)? {

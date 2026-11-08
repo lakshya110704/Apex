@@ -271,7 +271,8 @@ The reference app used a fully anatomical illustration with separately-colored q
 - A user got a 404 after adding a Gemini key and the Key saved label never changed. Added: provider error text shown in errors, a Test connection button, honest key status (Not saved yet, then Key and model updated), and an automatic model list: after a key is saved Model becomes a picker of what the key can use (free text only as a fallback). I could not reproduce the 404 without a key; Google's own pages disagree on when gemini-2.5-flash retires.
 - Workouts redesigned in the dashboard style: week strip with day sheets, Train next card, last four sessions. Checked on screen in dark and light with a temporary seeded plan (removed). Nutrition, Progress and Coach still use the older layout.
 - Nutrition redesigned: 7-day calorie strip, big total with a macro split bar, two log buttons. Seen in dark mode with temporarily seeded meals (removed); not seen in light mode. Progress and Coach still use the older layout.
-- 39 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
+- Progress redesigned: level hero, 14-day active strip, tiles for streaks, muscles and achievements. Seen in dark mode only. Coach still uses the older layout.
+- 40 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---
 

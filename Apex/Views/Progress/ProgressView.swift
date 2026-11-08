@@ -17,60 +17,45 @@ struct ApexProgressView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        // Level Card
                         levelCard
                             .padding(.horizontal)
 
-                        // Streaks
-                        streaksSection
+                        consistencyCard
                             .padding(.horizontal)
 
-                        // All-Time Stats
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                            streakTile(title: "Workout streak", icon: "flame.fill", value: profile?.workoutStreak ?? 0, color: ApexColor.danger)
+                            streakTile(title: "Meal streak", icon: "leaf.fill", value: profile?.mealStreak ?? 0, color: ApexColor.success)
+                            NavigationLink(destination: MuscleHeatmapView()) {
+                                ApexTile(title: "Muscles", systemImage: "figure.arms.open") {
+                                    Text("See which muscles you have worked")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(ApexColor.textPrimary)
+                                        .multilineTextAlignment(.leading)
+                                }
+                            }
+                            .buttonStyle(PressableStyle())
+                            NavigationLink(destination: AchievementsView()) {
+                                ApexTile(title: "Achievements", systemImage: "trophy.fill") {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("\(unlockedCount)/\(achievements.count)")
+                                            .apexDisplay(36)
+                                            .foregroundStyle(ApexColor.textPrimary)
+                                        Text("unlocked")
+                                            .font(.caption)
+                                            .foregroundStyle(ApexColor.textSecondary)
+                                    }
+                                }
+                            }
+                            .buttonStyle(PressableStyle())
+                        }
+                        .padding(.horizontal)
+
                         statsSection
                             .padding(.horizontal)
 
-                        // Workout Breakdown
                         workoutBreakdownSection
                             .padding(.horizontal)
-
-                        // Muscles Worked
-                        NavigationLink(destination: MuscleHeatmapView()) {
-                            HStack {
-                                Label("Muscles Worked", systemImage: "figure.arms.open")
-                                    .font(.subheadline.bold())
-                                    .foregroundStyle(ApexColor.accent)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(ApexColor.textSecondary)
-                            }
-                        }
-                        .padding(16)
-                        .background(ApexColor.accent.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(ApexColor.accent.opacity(0.3), lineWidth: 1))
-                        .padding(.horizontal)
-
-                        // Achievements Preview
-                        NavigationLink(destination: AchievementsView()) {
-                            HStack {
-                                Label("Achievements", systemImage: "trophy.fill")
-                                    .font(.subheadline.bold())
-                                    .foregroundStyle(ApexColor.warning)
-                                Spacer()
-                                Text("\(unlockedCount)/\(achievements.count)")
-                                    .font(.subheadline.bold())
-                                    .foregroundStyle(ApexColor.warning)
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(ApexColor.textSecondary)
-                            }
-                        }
-                        .padding(16)
-                        .background(ApexColor.warning.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(ApexColor.warning.opacity(0.3), lineWidth: 1))
-                        .padding(.horizontal)
 
                         Spacer(minLength: 32)
                     }
@@ -138,49 +123,52 @@ struct ApexProgressView: View {
         .apexCard()
     }
 
-    // MARK: - Streaks
+    // MARK: - Consistency
 
-    private var streaksSection: some View {
-        HStack(spacing: 12) {
-            streakCard(
-                label: "Workout Streak",
-                value: profile?.workoutStreak ?? 0,
-                icon: "flame.fill",
-                color: ApexColor.danger
-            )
-            streakCard(
-                label: "Meal Streak",
-                value: profile?.mealStreak ?? 0,
-                icon: "leaf.fill",
-                color: ApexColor.success
-            )
+    private var consistencyCard: some View {
+        let days = ActiveDays.lastDays(14, dates: workouts.map(\.date) + meals.map(\.date))
+        let activeCount = days.filter(\.active).count
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Last 14 days").apexLabel()
+                Spacer()
+                Text("\(activeCount) active")
+                    .font(.caption.bold())
+                    .foregroundStyle(ApexColor.textSecondary)
+            }
+            HStack(spacing: 5) {
+                ForEach(days, id: \.day) { item in
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(item.active ? ApexColor.accent : ApexColor.cardBg2)
+                        .frame(height: 30)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .stroke(item.day.isToday ? ApexColor.textPrimary.opacity(0.6) : Color.clear, lineWidth: 1.5)
+                        )
+                        .accessibilityLabel("\(item.day.mediumDate), \(item.active ? "active" : "nothing logged")")
+                }
+            }
+            Text("A day counts when you log a workout or a meal.")
+                .font(.caption2)
+                .foregroundStyle(ApexColor.textSecondary)
         }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ApexColor.cardBg)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
-    private func streakCard(label: String, value: Int, icon: String, color: Color) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
-            Text("\(value)")
-                .apexDisplay(36)
-                .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
-            Text("day\(value == 1 ? "" : "s")")
-                .font(.caption)
-                .foregroundStyle(ApexColor.textSecondary)
-            Text(label)
-                .font(.caption2.bold())
-                .foregroundStyle(ApexColor.textSecondary)
-                .multilineTextAlignment(.center)
+    private func streakTile(title: String, icon: String, value: Int, color: Color) -> some View {
+        ApexTile(title: title, systemImage: icon) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(value)")
+                    .apexDisplay(44)
+                    .foregroundStyle(value > 0 ? color : ApexColor.textSecondary)
+                Text(value == 1 ? "day" : "days")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.textSecondary)
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(value > 0 ? color.opacity(0.1) : ApexColor.cardBg)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(value > 0 ? color.opacity(0.3) : Color.clear, lineWidth: 1)
-        )
     }
 
     // MARK: - All-Time Stats

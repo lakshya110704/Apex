@@ -567,4 +567,20 @@ final class LogicTests: XCTestCase {
         XCTAssertNil(MacroSplit.shares(protein: -5, carbs: 0, fat: -1), "negative grams are ignored")
         XCTAssertEqual(try XCTUnwrap(MacroSplit.shares(protein: 10, carbs: 0, fat: 0)).protein, 1, accuracy: 0.0001)
     }
+
+    // MARK: Active days
+
+    func testActiveDaysStrip() {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let dates = [today, cal.date(byAdding: .hour, value: 13, to: today)!, cal.date(byAdding: .day, value: -2, to: today)!, cal.date(byAdding: .day, value: -20, to: today)!]
+        let days = ActiveDays.lastDays(14, dates: dates)
+        XCTAssertEqual(days.count, 14)
+        XCTAssertEqual(days.last?.day, today, "ends today")
+        XCTAssertEqual(days.filter(\.active).count, 2, "today and two days ago; the 20-day-old log is outside the window")
+        XCTAssertTrue(days[13].active)
+        XCTAssertFalse(days[12].active)
+        XCTAssertTrue(days[11].active)
+        XCTAssertTrue(ActiveDays.lastDays(0, dates: dates).isEmpty)
+    }
 }
