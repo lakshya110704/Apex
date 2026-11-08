@@ -10,7 +10,7 @@ A native iOS app that combines Apple Watch health data, workout and meal logging
 | **Workouts** | A week strip of seven day chips (done, missed, planned) that open a day sheet, log tennis and gym sessions, a Train next card with swipeable muscle chips linking to the muscle map, the last four sessions with See all, and Apple Watch import |
 | **Nutrition** | A 7-day strip with a calorie bar per day (tap to pick a day), a big calorie total with a protein, carbs and fat split bar, Snap a meal and Type it out, and the day's meals; calorie and macro numbers are AI estimates |
 | **Progress** | A level hero, a 14-day strip of days you logged something, tiles for the workout streak, meal streak, achievements and the "Muscles Worked" heatmap, then all-time stats and a workout type breakdown |
-| **Coach** | Chat with the AI. The system prompt tells it to answer from your numbers (calories and protein left, HRV vs 7-day average, sleep) |
+| **Coach** | A "Today's call" readiness card (No Data until there is a sleep or HRV reading, then Full Send, Measured, Recovery or Rest Day, with kcal and protein left), suggested questions as chips above the input, and a chat whose system prompt tells the AI to answer from your numbers (calories and protein left, HRV vs 7-day average, sleep) |
 
 Also: morning and evening check-ins, XP for logging, a local notification at 8pm when a streak is at risk or nothing is logged, GitHub commits for today (public events API, username set in Settings).
 

@@ -272,6 +272,7 @@ The reference app used a fully anatomical illustration with separately-colored q
 - Workouts redesigned in the dashboard style: week strip with day sheets, Train next card, last four sessions. Checked on screen in dark and light with a temporary seeded plan (removed). Nutrition, Progress and Coach still use the older layout.
 - Nutrition redesigned: 7-day calorie strip, big total with a macro split bar, two log buttons. Seen in dark mode with temporarily seeded meals (removed); not seen in light mode. Progress and Coach still use the older layout.
 - Progress redesigned: level hero, 14-day active strip, tiles for streaks, muscles and achievements. Seen in dark mode only. Coach still uses the older layout.
+- Coach redesigned: readiness card at the top of the chat, question chips above the input. Seen in dark mode only; the chat bubbles themselves are unchanged and I have not seen a real reply. All five tabs now use the dashboard style.
 - 40 unit tests on the logic layer. Still unverified: anything needing HealthKit data, a key, or a device.
 
 ---

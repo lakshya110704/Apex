@@ -101,13 +101,11 @@ struct CoachView: View {
                 ApexColor.background.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Coach stance banner
-                    stanceBanner
-
                     // Chat messages
                     ScrollViewReader { proxy in
                         ScrollView {
                             LazyVStack(spacing: 12) {
+                                readinessCard
                                 if messages.isEmpty {
                                     welcomePrompts
                                 }
@@ -132,6 +130,8 @@ struct CoachView: View {
                         }
                     }
 
+                    promptChips
+
                     Text("AI coaching based on your logged data. Not medical advice.")
                         .font(.caption2)
                         .foregroundStyle(ApexColor.textSecondary)
@@ -154,36 +154,36 @@ struct CoachView: View {
 
     // MARK: - Stance Banner
 
-    private var stanceBanner: some View {
+    private var readinessCard: some View {
         let stance = coachStance
-        return HStack(spacing: 10) {
-            Image(systemName: stance.icon)
-                .font(.caption.bold())
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: stance.icon).foregroundStyle(stance.color)
+                Text("Today's call").apexLabel()
+            }
+            Text(stance.label)
+                .apexDisplay(40)
                 .foregroundStyle(stance.color)
+            Text(stance.description)
+                .font(.subheadline)
+                .foregroundStyle(ApexColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text(stance.label.uppercased())
-                    .font(.caption2.bold())
-                    .foregroundStyle(stance.color)
-                Text(stance.description)
-                    .font(.caption2)
-                    .foregroundStyle(ApexColor.textSecondary)
-            }
-
-            Spacer()
-
-            // Today's key stats
-            if let cal = todayCalorieInfo {
-                statChip(value: cal, label: "kcal left", color: ApexColor.danger)
-            }
-            if let pro = todayProteinInfo {
-                statChip(value: pro, label: "g protein", color: ApexColor.accentCyan)
+            if todayCalorieInfo != nil || todayProteinInfo != nil {
+                HStack(spacing: 10) {
+                    if let cal = todayCalorieInfo { statChip(value: cal, label: "kcal left", color: ApexColor.danger) }
+                    if let pro = todayProteinInfo { statChip(value: pro, label: "g protein", color: ApexColor.accent) }
+                }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(stance.color.opacity(0.08))
-        .overlay(Rectangle().frame(height: 1).foregroundStyle(stance.color.opacity(0.15)), alignment: .bottom)
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ApexColor.cardBg)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(stance.color.opacity(0.35), lineWidth: 1)
+        )
     }
 
     private var todayCalorieInfo: String? {
@@ -218,62 +218,57 @@ struct CoachView: View {
     }
 
     private func statChip(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 1) {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
             Text(value)
-                .font(.caption.bold())
+                .font(.headline.bold())
                 .foregroundStyle(color)
             Text(label)
-                .font(.system(size: 8))
+                .font(.caption)
                 .foregroundStyle(ApexColor.textSecondary)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(color.opacity(0.12))
+        .clipShape(Capsule())
     }
 
     // MARK: - Welcome Prompts
 
     private var welcomePrompts: some View {
-        VStack(spacing: 16) {
-            Spacer(minLength: 16)
-            VStack(spacing: 8) {
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 40))
-                    .foregroundStyle(ApexColor.accent)
-                Text("Apex Coach")
-                    .font(.title2.bold())
-                    .foregroundStyle(ApexColor.textPrimary)
-                Text("Answers based on the data you have logged.")
-                    .font(.subheadline)
-                    .foregroundStyle(ApexColor.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
+        VStack(spacing: 6) {
+            Text("Ask anything about your day")
+                .font(.headline)
+                .foregroundStyle(ApexColor.textPrimary)
+            Text("Answers are based on the data you have logged. Tap a question below or type your own.")
+                .font(.subheadline)
+                .foregroundStyle(ApexColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 16)
+    }
 
-            VStack(spacing: 10) {
-                Text("Try asking")
-                    .font(.caption.bold())
-                    .foregroundStyle(ApexColor.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
+    private var promptChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 8) {
                 ForEach(quickPrompts, id: \.self) { prompt in
                     Button { sendMessage(prompt) } label: {
-                        HStack {
-                            Text(prompt)
-                                .font(.subheadline)
-                                .foregroundStyle(ApexColor.textPrimary)
-                                .multilineTextAlignment(.leading)
-                            Spacer()
-                            Image(systemName: "arrow.up.circle")
-                                .foregroundStyle(ApexColor.accent)
-                        }
-                        .padding(12)
-                        .background(ApexColor.cardBg)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        Text(prompt)
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(ApexColor.textPrimary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(ApexColor.cardBg)
+                            .clipShape(Capsule())
                     }
+                    .buttonStyle(PressableStyle())
+                    .disabled(isTyping || !canSend)
                 }
             }
         }
+        .contentMargins(.horizontal, 16, for: .scrollContent)
+        .frame(height: 46)
+        .padding(.bottom, 4)
     }
 
     private var quickPrompts: [String] {
