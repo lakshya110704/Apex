@@ -503,4 +503,40 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(PlanTiming.minutes("07:05"), 425)
         XCTAssertNil(PlanTiming.minutes("7"))
     }
+
+    // MARK: Provider errors and model lists
+
+    func testProviderErrorDetailIsShown() {
+        let gemini = #"{"error":{"code":404,"message":"models/gemini-x is not found for API version v1beta","status":"NOT_FOUND"}}"#
+        let openai = #"{"error":{"message":"Incorrect API key provided","type":"invalid_request_error"}}"#
+        let anthropic = #"{"type":"error","error":{"type":"not_found_error","message":"model: claude-x"}}"#
+        XCTAssertEqual(AIProvider.errorDetail(fromBody: gemini), "models/gemini-x is not found for API version v1beta")
+        XCTAssertEqual(AIProvider.errorDetail(fromBody: openai), "Incorrect API key provided")
+        XCTAssertEqual(AIProvider.errorDetail(fromBody: anthropic), "model: claude-x")
+        XCTAssertNil(AIProvider.errorDetail(fromBody: "<html>bad gateway</html>"))
+        XCTAssertNil(AIProvider.errorDetail(fromBody: ""))
+
+        let notFound = ClaudeError.apiError(404, gemini).errorDescription ?? ""
+        XCTAssertTrue(notFound.contains("not found for API version"))
+        XCTAssertTrue(notFound.contains("Find available models"), "404 should point at the model finder")
+        XCTAssertTrue((ClaudeError.apiError(401, openai).errorDescription ?? "").contains("Incorrect API key provided"))
+        XCTAssertEqual(ClaudeError.apiError(429, gemini).errorDescription, "AI quota reached. Wait a bit and try again.")
+    }
+
+    func testModelListRequestsAndParsing() throws {
+        for provider in AIProvider.allCases where provider.isCloud {
+            let request = try XCTUnwrap(provider.modelsRequest(apiKey: "SECRET-KEY"))
+            XCTAssertFalse(request.url!.absoluteString.contains("SECRET-KEY"))
+            XCTAssertTrue((request.allHTTPHeaderFields ?? [:]).values.joined().contains("SECRET-KEY"))
+        }
+        XCTAssertNil(AIProvider.local.modelsRequest(apiKey: ""))
+
+        let gemini = Data(#"{"models":[{"name":"models/gemini-b","supportedGenerationMethods":["generateContent"]},{"name":"models/embedding-1","supportedGenerationMethods":["embedContent"]},{"name":"models/gemini-a","supportedGenerationMethods":["generateContent","countTokens"]}]}"#.utf8)
+        XCTAssertEqual(AIProvider.gemini.parseModels(gemini), ["gemini-a", "gemini-b"])
+        let openai = Data(#"{"data":[{"id":"gpt-4o"},{"id":"text-embedding-3-small"},{"id":"o3-mini"},{"id":"whisper-1"},{"id":"gpt-4o"}]}"#.utf8)
+        XCTAssertEqual(AIProvider.openai.parseModels(openai), ["gpt-4o", "o3-mini"])
+        let anthropic = Data(#"{"data":[{"id":"claude-b"},{"id":"claude-a"}]}"#.utf8)
+        XCTAssertEqual(AIProvider.anthropic.parseModels(anthropic), ["claude-a", "claude-b"])
+        XCTAssertEqual(AIProvider.gemini.parseModels(Data("nope".utf8)), [])
+    }
 }

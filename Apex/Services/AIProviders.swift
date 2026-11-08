@@ -27,8 +27,15 @@ enum ClaudeError: LocalizedError {
             return "No connection to the AI service. Check your internet and try again."
         case .apiError(429, _):
             return "AI quota reached. Wait a bit and try again."
-        case .apiError(let code, _):
-            return "API error \(code). Check your key and model in Settings."
+        case .apiError(let code, let body):
+            var text = "API error \(code)"
+            if let detail = AIProvider.errorDetail(fromBody: body) { text += ": \(detail)" }
+            if code == 404 {
+                text += " The model may have been retired. In Settings, tap Find available models."
+            } else {
+                text += " Check your key and model in Settings."
+            }
+            return text
         }
     }
 }
@@ -248,5 +255,62 @@ enum AIProvider: String, CaseIterable, Identifiable {
 
     private func lastUserIndex(_ spec: AIRequestSpec) -> Int? {
         spec.messages.lastIndex { $0.role == .user }
+    }
+}
+
+// MARK: - Errors and model lists from the provider
+
+extension AIProvider {
+    /// The human message inside a provider's JSON error body, if there is one.
+    static func errorDetail(fromBody body: String) -> String? {
+        guard let json = try? JSONSerialization.jsonObject(with: Data(body.utf8)) as? [String: Any] else { return nil }
+        let message = (json["error"] as? [String: Any])?["message"] as? String ?? json["message"] as? String
+        guard let text = message?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        return text.count > 220 ? String(text.prefix(220)) + "..." : text
+    }
+
+    func modelsRequest(apiKey: String) -> URLRequest? {
+        let urlString: String
+        switch self {
+        case .gemini:    urlString = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=200"
+        case .openai:    urlString = "https://api.openai.com/v1/models"
+        case .anthropic: urlString = "https://api.anthropic.com/v1/models?limit=100"
+        case .local:     return nil
+        }
+        guard let url = URL(string: urlString) else { return nil }
+        var request = URLRequest(url: url)
+        switch self {
+        case .gemini:
+            request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        case .openai:
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        case .anthropic:
+            request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+            request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        case .local:
+            break
+        }
+        return request
+    }
+
+    /// Model ids this provider says it can chat with, sorted.
+    func parseModels(_ data: Data) -> [String] {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [] }
+        let ids: [String]
+        switch self {
+        case .gemini:
+            let models = json["models"] as? [[String: Any]] ?? []
+            ids = models
+                .filter { ($0["supportedGenerationMethods"] as? [String])?.contains("generateContent") == true }
+                .compactMap { ($0["name"] as? String)?.replacingOccurrences(of: "models/", with: "") }
+        case .openai:
+            let all = (json["data"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String }
+            ids = all.filter { $0.hasPrefix("gpt") || $0.hasPrefix("chatgpt") || $0.range(of: "^o[0-9]", options: .regularExpression) != nil }
+        case .anthropic:
+            ids = (json["data"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String }.filter { $0.hasPrefix("claude") }
+        case .local:
+            ids = []
+        }
+        return Array(Set(ids)).sorted()
     }
 }

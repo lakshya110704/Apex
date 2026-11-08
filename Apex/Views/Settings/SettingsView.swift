@@ -12,6 +12,13 @@ struct SettingsView: View {
     @State private var nameText = ""
     @State private var apiKeyText = ""
     @State private var modelText = ""
+    @State private var showSavedNotice = false
+    @State private var saveCount = 0
+    @State private var isTesting = false
+    @State private var testResult: (ok: Bool, text: String)?
+    @State private var foundModels: [String] = []
+    @State private var isFindingModels = false
+    @State private var modelsError: String?
     @State private var githubText = ""
     @State private var showAPIKey = false
     @State private var showingOnboarding = false
@@ -108,6 +115,7 @@ struct SettingsView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
+                .sensoryFeedback(.success, trigger: saveCount)
             }
             .navigationTitle("Settings")
             .onAppear {
@@ -157,12 +165,73 @@ struct SettingsView: View {
         apiKeyText = claude.apiKey
         modelText = claude.provider.isCloud ? claude.model(for: claude.provider) : ""
         showAPIKey = false
+        testResult = nil
+        foundModels = []
+        modelsError = nil
+        showSavedNotice = false
     }
 
     private func saveCloudProvider() {
         let provider = claude.provider
         claude.setAPIKey(apiKeyText.trimmingCharacters(in: .whitespacesAndNewlines), for: provider)
         claude.setModel(modelText == provider.defaultModel ? "" : modelText, for: provider)
+        saveCount += 1
+        testResult = nil
+        withAnimation { showSavedNotice = true }
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            withAnimation { showSavedNotice = false }
+        }
+    }
+
+    private var typedKey: String { apiKeyText.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    @ViewBuilder
+    private func keyStatus(_ provider: AIProvider) -> some View {
+        let saved = claude.apiKey(for: provider)
+        if showSavedNotice {
+            Label("Key and model updated", systemImage: "checkmark.circle.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(ApexColor.success)
+        } else if typedKey.isEmpty && !saved.isEmpty {
+            Label("A key is saved. Clear the field and save to remove it.", systemImage: "key.fill")
+                .font(.caption)
+                .foregroundStyle(ApexColor.textSecondary)
+        } else if !typedKey.isEmpty && typedKey != saved {
+            Label("Not saved yet. Tap Save key and model.", systemImage: "exclamationmark.circle.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(ApexColor.warning)
+        } else if !saved.isEmpty {
+            Label("Key saved", systemImage: "checkmark.circle.fill")
+                .font(.caption)
+                .foregroundStyle(ApexColor.success)
+        }
+    }
+
+    private func runTest() async {
+        testResult = nil
+        guard !typedKey.isEmpty else { testResult = (false, "Enter a key first."); return }
+        isTesting = true
+        defer { isTesting = false }
+        do {
+            try await claude.testConnection(apiKey: typedKey, model: modelText.trimmingCharacters(in: .whitespaces))
+            testResult = (true, "Connected. The key and model work.")
+        } catch {
+            testResult = (false, error.localizedDescription)
+        }
+    }
+
+    private func findModels() async {
+        modelsError = nil
+        guard !typedKey.isEmpty else { modelsError = "Enter a key first."; return }
+        isFindingModels = true
+        defer { isFindingModels = false }
+        do {
+            foundModels = try await claude.listModels(apiKey: typedKey)
+        } catch {
+            foundModels = []
+            modelsError = error.localizedDescription
+        }
     }
 
     @ViewBuilder
@@ -192,11 +261,7 @@ struct SettingsView: View {
                 }
                 .onSubmit { saveCloudProvider() }
 
-                if claude.apiKey(for: provider).isNotEmpty {
-                    Label("Key saved", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(ApexColor.success)
-                }
+                keyStatus(provider)
             }
             .listRowBackground(ApexColor.cardBg)
 
@@ -215,6 +280,58 @@ struct SettingsView: View {
             Button("Save key and model") { saveCloudProvider() }
                 .foregroundStyle(ApexColor.accent)
                 .listRowBackground(ApexColor.cardBg)
+
+            Button {
+                Task { await runTest() }
+            } label: {
+                HStack {
+                    Text("Test connection")
+                    if isTesting { ProgressView().scaleEffect(0.8) }
+                }
+            }
+            .disabled(isTesting)
+            .foregroundStyle(ApexColor.accent)
+            .listRowBackground(ApexColor.cardBg)
+
+            if let result = testResult {
+                Label(result.text, systemImage: result.ok ? "checkmark.circle.fill" : "xmark.octagon.fill")
+                    .font(.caption)
+                    .foregroundStyle(result.ok ? ApexColor.success : ApexColor.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowBackground(ApexColor.cardBg)
+            }
+
+            Button {
+                Task { await findModels() }
+            } label: {
+                HStack {
+                    Text("Find available models")
+                    if isFindingModels { ProgressView().scaleEffect(0.8) }
+                }
+            }
+            .disabled(isFindingModels)
+            .foregroundStyle(ApexColor.accent)
+            .listRowBackground(ApexColor.cardBg)
+
+            if !foundModels.isEmpty {
+                Picker("Choose a model", selection: Binding(
+                    get: { modelText },
+                    set: { modelText = $0; saveCloudProvider() }
+                )) {
+                    ForEach(foundModels, id: \.self) { Text($0).tag($0) }
+                }
+                .foregroundStyle(ApexColor.textPrimary)
+                .tint(ApexColor.accent)
+                .listRowBackground(ApexColor.cardBg)
+            }
+
+            if let error = modelsError {
+                Label(error, systemImage: "xmark.octagon.fill")
+                    .font(.caption)
+                    .foregroundStyle(ApexColor.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowBackground(ApexColor.cardBg)
+            }
 
             if let url = provider.keyURL {
                 Link(destination: url) {

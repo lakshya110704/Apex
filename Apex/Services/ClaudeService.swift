@@ -432,7 +432,10 @@ final class ClaudeService {
         defer { isLoading = false }
 
         let request = try provider.urlRequest(spec, apiKey: key, model: model(for: provider), localBaseURL: ollamaBaseURL)
+        return try provider.parseReply(try await perform(request))
+    }
 
+    private func perform(_ request: URLRequest) async throws -> Data {
         let data: Data
         let response: URLResponse
         do {
@@ -440,11 +443,29 @@ final class ClaudeService {
         } catch is URLError {
             throw ClaudeError.networkError
         }
-
         guard let http = response as? HTTPURLResponse else { throw ClaudeError.networkError }
         guard http.statusCode == 200 else {
             throw ClaudeError.apiError(http.statusCode, String(data: data, encoding: .utf8) ?? "")
         }
-        return try provider.parseReply(data)
+        return data
+    }
+
+    /// Tiny request with no personal data, so the user can check a key and model before relying on them.
+    func testConnection(apiKey key: String, model name: String) async throws {
+        let spec = AIRequestSpec(
+            system: "Reply with the single word OK.",
+            messages: [AIMessage(role: .user, text: "ping")],
+            maxTokens: 8
+        )
+        let request = try provider.urlRequest(spec, apiKey: key, model: name.isEmpty ? provider.defaultModel : name, localBaseURL: ollamaBaseURL)
+        _ = try provider.parseReply(try await perform(request))
+    }
+
+    /// Asks the provider which models this key can use, so a retired default never leaves the user stuck.
+    func listModels(apiKey key: String) async throws -> [String] {
+        guard let request = provider.modelsRequest(apiKey: key) else { return [] }
+        let ids = provider.parseModels(try await perform(request))
+        guard !ids.isEmpty else { throw ClaudeError.parseError }
+        return ids
     }
 }
