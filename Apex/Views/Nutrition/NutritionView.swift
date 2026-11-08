@@ -30,54 +30,15 @@ struct NutritionView: View {
                 ScrollView {
                     VStack(spacing: 16) {
 
-                        // Date Picker
-                        DatePicker("", selection: $selectedDate, displayedComponents: .date)
-                            .datePickerStyle(.compact)
+                        dayStrip
                             .padding(.horizontal)
 
-                        // Daily Summary
-                        dailySummaryCard
+                        summaryHero
                             .padding(.horizontal)
 
-                        // Log Meal Buttons
-                        HStack(spacing: 10) {
-                            Button { showingCamera = true } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "camera.fill")
-                                        .font(.subheadline.bold())
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Snap a Meal")
-                                            .font(.subheadline.bold())
-                                        Text("+\(XPValues.logMeal) XP")
-                                            .font(.caption.bold())
-                                            .opacity(0.75)
-                                    }
-                                    Spacer(minLength: 0)
-                                }
-                                .foregroundStyle(ApexColor.onAccent)
-                                .padding(14)
-                                .background(ApexColor.accent)
-                                .clipShape(RoundedRectangle(cornerRadius: 14))
-                            }
-                            .frame(maxWidth: .infinity)
+                        logButtons
+                            .padding(.horizontal)
 
-                            Button { showingTextInput = true } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "text.cursor")
-                                        .font(.subheadline.bold())
-                                    Text("Type it out")
-                                        .font(.subheadline.bold())
-                                }
-                                .foregroundStyle(ApexColor.textPrimary)
-                                .padding(14)
-                                .frame(maxWidth: .infinity)
-                                .background(ApexColor.cardBg)
-                                .clipShape(RoundedRectangle(cornerRadius: 14))
-                            }
-                        }
-                        .padding(.horizontal)
-
-                        // Meals List
                         if mealsOnDate.isEmpty {
                             EmptyStateView(
                                 icon: "fork.knife",
@@ -119,21 +80,74 @@ struct NutritionView: View {
         }
     }
 
-    // MARK: - Summary Card
+    // MARK: - Day strip
 
-    private var dailySummaryCard: some View {
-        VStack(spacing: 16) {
+    private var lastSevenDays: [Date] {
+        (0..<7).reversed().compactMap { Calendar.current.date(byAdding: .day, value: -$0, to: Date().startOfDay) }
+    }
+
+    private func calories(on day: Date) -> Int {
+        meals.filter { $0.date.isSameDay(as: day) }.reduce(0) { $0 + $1.estimatedCalories }
+    }
+
+    private var dayStrip: some View {
+        let days = lastSevenDays
+        let peak = max(days.map { calories(on: $0) }.max() ?? 0, 1)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("\(totalCalories)")
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundStyle(totalCalories > 0 ? ApexColor.success : ApexColor.textSecondary)
-                    Text("kcal today")
-                        .font(.caption)
-                        .foregroundStyle(ApexColor.textSecondary)
-                }
+                Text("Last 7 days").apexLabel()
                 Spacer()
-                VStack(alignment: .trailing, spacing: 4) {
+                DatePicker("", selection: $selectedDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .datePickerStyle(.compact)
+            }
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(days, id: \.self) { day in
+                    let kcal = calories(on: day)
+                    let isSelected = day.isSameDay(as: selectedDate)
+                    Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { selectedDate = day } } label: {
+                        VStack(spacing: 6) {
+                            ZStack(alignment: .bottom) {
+                                Capsule().fill(ApexColor.cardBg2).frame(width: 8, height: 44)
+                                Capsule()
+                                    .fill(isSelected ? ApexColor.accent : ApexColor.textSecondary.opacity(0.6))
+                                    .frame(width: 8, height: kcal == 0 ? 0 : max(6, 44 * CGFloat(kcal) / CGFloat(peak)))
+                            }
+                            Text(day.formatted(.dateTime.weekday(.narrow)))
+                                .font(.caption2.weight(.heavy))
+                                .foregroundStyle(isSelected ? ApexColor.accent : ApexColor.textSecondary)
+                            Text("\(Calendar.current.component(.day, from: day))")
+                                .font(.footnote.weight(.bold))
+                                .foregroundStyle(ApexColor.textPrimary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(isSelected ? ApexColor.accent.opacity(0.12) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel("\(day.mediumDate), \(kcal) kilocalories")
+                }
+            }
+        }
+        .padding(14)
+        .background(ApexColor.cardBg)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+
+    // MARK: - Summary hero
+
+    private var summaryHero: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(totalCalories)")
+                    .apexDisplay(64)
+                    .foregroundStyle(totalCalories > 0 ? ApexColor.textPrimary : ApexColor.textSecondary)
+                Text("kcal")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(ApexColor.textSecondary)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
                     Text("\(mealsOnDate.count) meal\(mealsOnDate.count == 1 ? "" : "s")")
                         .font(.subheadline.bold())
                         .foregroundStyle(ApexColor.textPrimary)
@@ -143,29 +157,73 @@ struct NutritionView: View {
                 }
             }
 
-            if !mealsOnDate.isEmpty {
+            if let shares = MacroSplit.shares(protein: totalProtein, carbs: totalCarbs, fat: totalFat) {
+                GeometryReader { geo in
+                    HStack(spacing: 3) {
+                        Capsule().fill(ApexColor.accent).frame(width: max(geo.size.width * shares.protein - 3, 4))
+                        Capsule().fill(ApexColor.success).frame(width: max(geo.size.width * shares.carbs - 3, 4))
+                        Capsule().fill(ApexColor.warning).frame(width: max(geo.size.width * shares.fat - 3, 4))
+                    }
+                }
+                .frame(height: 10)
+
                 HStack(spacing: 0) {
-                    macroBar(label: "Protein", grams: totalProtein, color: ApexColor.accent)
-                    Divider().background(ApexColor.cardBg2).frame(height: 40)
-                    macroBar(label: "Carbs",   grams: totalCarbs,   color: ApexColor.accentCyan)
-                    Divider().background(ApexColor.cardBg2).frame(height: 40)
-                    macroBar(label: "Fat",     grams: totalFat,     color: ApexColor.warning)
+                    macroLegend("Protein", grams: totalProtein, color: ApexColor.accent)
+                    macroLegend("Carbs", grams: totalCarbs, color: ApexColor.success)
+                    macroLegend("Fat", grams: totalFat, color: ApexColor.warning)
                 }
             }
         }
-        .apexCard()
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ApexColor.cardBg)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
-    private func macroBar(label: String, grams: Double, color: Color) -> some View {
-        VStack(spacing: 4) {
-            Text("\(Int(grams))g")
-                .font(.headline.bold())
-                .foregroundStyle(color)
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(ApexColor.textSecondary)
+    private func macroLegend(_ label: String, grams: Double, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 8, height: 8)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(Int(grams))g").font(.subheadline.bold()).foregroundStyle(ApexColor.textPrimary)
+                Text(label).font(.caption2).foregroundStyle(ApexColor.textSecondary)
+            }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var logButtons: some View {
+        HStack(spacing: 10) {
+            Button { showingCamera = true } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "camera.fill").font(.title3)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Snap a meal").font(.subheadline.bold())
+                        Text("+\(XPValues.logMeal) XP").font(.caption.bold()).opacity(0.75)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(ApexColor.onAccent)
+                .padding(16)
+                .frame(maxWidth: .infinity, minHeight: 64)
+                .background(ApexColor.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            }
+            .buttonStyle(PressableStyle())
+
+            Button { showingTextInput = true } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "text.cursor").font(.title3).foregroundStyle(ApexColor.accent)
+                    Text("Type it out").font(.subheadline.bold())
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(ApexColor.textPrimary)
+                .padding(16)
+                .frame(maxWidth: .infinity, minHeight: 64)
+                .background(ApexColor.cardBg)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            }
+            .buttonStyle(PressableStyle())
+        }
     }
 
     // MARK: - Meals List

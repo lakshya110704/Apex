@@ -554,4 +554,17 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(none.total, 0)
         XCTAssertEqual(none.done, 0)
     }
+
+    // MARK: Macro split
+
+    func testMacroSplitSharesAreByCalories() throws {
+        let shares = try XCTUnwrap(MacroSplit.shares(protein: 25, carbs: 25, fat: 100.0 / 9))
+        XCTAssertEqual(shares.protein, 100.0 / 300.0, accuracy: 0.001)
+        XCTAssertEqual(shares.carbs, 100.0 / 300.0, accuracy: 0.001)
+        XCTAssertEqual(shares.fat, 100.0 / 300.0, accuracy: 0.001)
+        XCTAssertEqual(shares.protein + shares.carbs + shares.fat, 1, accuracy: 0.0001)
+        XCTAssertNil(MacroSplit.shares(protein: 0, carbs: 0, fat: 0))
+        XCTAssertNil(MacroSplit.shares(protein: -5, carbs: 0, fat: -1), "negative grams are ignored")
+        XCTAssertEqual(try XCTUnwrap(MacroSplit.shares(protein: 10, carbs: 0, fat: 0)).protein, 1, accuracy: 0.0001)
+    }
 }

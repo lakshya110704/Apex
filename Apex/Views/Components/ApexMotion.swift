@@ -35,6 +35,16 @@ struct ApexTile<Content: View>: View {
     }
 }
 
+/// Share of calories from each macro (protein 4, carbs 4, fat 9 kcal per gram).
+enum MacroSplit {
+    static func shares(protein: Double, carbs: Double, fat: Double) -> (protein: Double, carbs: Double, fat: Double)? {
+        let p = max(protein, 0) * 4, c = max(carbs, 0) * 4, f = max(fat, 0) * 9
+        let total = p + c + f
+        guard total > 0 else { return nil }
+        return (p / total, c / total, f / total)
+    }
+}
+
 /// How much of the week's plan has been done.
 enum WeekPlan {
     /// A planned session counts as done when a workout of that type was logged that day.
