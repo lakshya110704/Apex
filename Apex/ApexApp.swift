@@ -19,6 +19,8 @@ struct ApexApp: App {
             FocusSession.self,
             EveningCheckIn.self,
             WorkoutScheduleEntry.self,
+            CoachMessageRecord.self,
+            CoachMemory.self,
         ])
     }
 }
