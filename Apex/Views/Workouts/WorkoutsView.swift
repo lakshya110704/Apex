@@ -521,6 +521,13 @@ struct WorkoutsView: View {
             HStack {
                 Text("Recent").apexLabel()
                 Spacer()
+                if workouts.contains(where: { $0.type == .tennis }) {
+                    NavigationLink("Tennis trends") { TennisTrendsView() }
+                        .font(.caption.bold())
+                        .foregroundStyle(ApexColor.accent)
+                        .buttonStyle(PressableStyle())
+                        .padding(.trailing, 8)
+                }
                 if workouts.count > 4 {
                     Button("See all \(workouts.count)") { showingAllHistory = true }
                         .font(.caption.bold())
