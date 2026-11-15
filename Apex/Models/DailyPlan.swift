@@ -22,7 +22,7 @@ final class DailyPlan {
     }
 }
 
-// MARK: - Chat Message (not persisted as standalone model — kept simple)
+// MARK: - Chat Message (saved through CoachMessageRecord)
 
 struct ChatMessage: Identifiable, Codable {
     let id: UUID
@@ -35,6 +35,13 @@ struct ChatMessage: Identifiable, Codable {
         self.role = role
         self.content = content
         self.timestamp = Date()
+    }
+
+    init(id: UUID, role: ChatRole, content: String, timestamp: Date) {
+        self.id = id
+        self.role = role
+        self.content = content
+        self.timestamp = timestamp
     }
 }
 

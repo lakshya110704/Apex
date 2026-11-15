@@ -10,6 +10,8 @@ struct CoachView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \MorningCheckIn.date, order: .reverse) private var checkIns: [MorningCheckIn]
     @Query private var scheduleEntries: [WorkoutScheduleEntry]
+    @Query(sort: \CoachMessageRecord.timestamp) private var chatHistory: [CoachMessageRecord]
+    @Query(sort: \CoachMemory.createdAt, order: .reverse) private var memories: [CoachMemory]
 
     private var profile: UserProfile? { profiles.first }
     private var todayCheckIn: MorningCheckIn? { checkIns.first(where: { $0.date.isToday }) }
@@ -24,6 +26,12 @@ struct CoachView: View {
     @State private var isTyping = false
     @State private var scrollProxy: ScrollViewProxy?
     @FocusState private var inputFocused: Bool
+    @State private var showingMemory = false
+    /// Error bubbles are shown but never saved or sent back to the model.
+    @State private var offlineIDs: Set<UUID> = []
+    @State private var loadedHistory = false
+    /// Memories the coach saved from a given reply, shown as a chip under it.
+    @State private var savedFromReply: [UUID: [CoachMemoryEngine.Item]] = [:]
 
     private var todayPlan: DailyPlan? { plans.first(where: { $0.date.isToday }) }
 
@@ -109,9 +117,15 @@ struct CoachView: View {
                                 if messages.isEmpty {
                                     welcomePrompts
                                 }
+                                if !memories.isEmpty || hasEarlierChats {
+                                    memoryStrip
+                                }
                                 ForEach(messages) { message in
                                     messageBubble(message)
                                         .id(message.id)
+                                    if let saved = savedFromReply[message.id], !saved.isEmpty {
+                                        savedChip(saved)
+                                    }
                                 }
                                 if isTyping {
                                     typingIndicator
@@ -142,7 +156,22 @@ struct CoachView: View {
                 }
             }
             .navigationTitle("Apex Coach")
+            .onAppear(perform: loadTodaysChat)
+            .sheet(isPresented: $showingMemory) {
+                CoachMemoryView(onForgetChats: {
+                    messages.removeAll()
+                    savedFromReply.removeAll()
+                    offlineIDs.removeAll()
+                })
+            }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingMemory = true } label: {
+                        Image(systemName: "brain")
+                    }
+                    .accessibilityLabel("Coach memory")
+                    .foregroundStyle(ApexColor.accent)
+                }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { inputFocused = false }
@@ -230,6 +259,89 @@ struct CoachView: View {
         .padding(.vertical, 8)
         .background(color.opacity(0.12))
         .clipShape(Capsule())
+    }
+
+    // MARK: - Memory
+
+    private var hasEarlierChats: Bool {
+        guard let first = chatHistory.first else { return false }
+        return !first.timestamp.isToday
+    }
+
+    private var memorySummary: String {
+        let goals = memories.filter { $0.kind == .goal }.count
+        let notes = memories.count - goals
+        var parts: [String] = []
+        if goals > 0 { parts.append("\(goals) goal\(goals == 1 ? "" : "s")") }
+        if notes > 0 { parts.append("\(notes) note\(notes == 1 ? "" : "s")") }
+        if hasEarlierChats { parts.append("earlier chats") }
+        return "Remembers " + ListFormatter.localizedString(byJoining: parts)
+    }
+
+    private var memoryStrip: some View {
+        Button { showingMemory = true } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "brain").foregroundStyle(ApexColor.accent)
+                Text(memorySummary)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(ApexColor.textPrimary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ApexColor.textSecondary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(ApexColor.cardBg)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    private func savedChip(_ items: [CoachMemoryEngine.Item]) -> some View {
+        Button { showingMemory = true } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                Text("Saved \(items.map { "\($0.kind.label.lowercased()): \($0.text)" }.joined(separator: ", "))")
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(ApexColor.accent)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(ApexColor.accent.opacity(0.12))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .padding(.leading, 36)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Picks up today's conversation where it was left. Earlier days stay in memory, not on screen.
+    private func loadTodaysChat() {
+        guard !loadedHistory else { return }
+        loadedHistory = true
+        guard messages.isEmpty else { return }
+        messages = chatHistory.filter { $0.timestamp.isToday }.map(\.chatMessage)
+    }
+
+    private func save(_ message: ChatMessage) {
+        context.insert(CoachMessageRecord(message))
+        try? context.save()
+    }
+
+    /// Stores what the coach asked to remember, skipping anything already saved. Returns what was new.
+    private func remember(_ items: [CoachMemoryEngine.Item]) -> [CoachMemoryEngine.Item] {
+        var known = memories.map(\.text)
+        var added: [CoachMemoryEngine.Item] = []
+        for item in items where !CoachMemoryEngine.isDuplicate(item.text, of: known) {
+            context.insert(CoachMemory(kind: item.kind, text: item.text, addedByCoach: true))
+            known.append(item.text)
+            added.append(item)
+        }
+        if !added.isEmpty { try? context.save() }
+        return added
     }
 
     // MARK: - Welcome Prompts
@@ -402,17 +514,28 @@ struct CoachView: View {
         inputText = ""
         let userMsg = ChatMessage(role: .user, content: text)
         messages.append(userMsg)
+        save(userMsg)
         isTyping = true
+
+        // Earlier days go in as a recap; only today's (saved) turns are sent as chat turns.
+        let earlier = chatHistory.map(\.chatMessage).filter { !$0.timestamp.isToday }
+        let memoryBlock = CoachMemoryEngine.promptSection(memories: memories.map(\.item), history: earlier)
+        let turns = CoachMemoryEngine.currentSession(messages.filter { !offlineIDs.contains($0.id) })
 
         Task {
             do {
                 let apexCtx = buildApexContext()
-                let response = try await claude.chat(messages: messages, context: apexCtx)
-                let assistantMsg = ChatMessage(role: .assistant, content: response)
+                let raw = try await claude.chat(messages: turns, context: apexCtx, memory: memoryBlock)
+                let (response, saves) = CoachMemoryEngine.extract(from: raw)
+                let assistantMsg = ChatMessage(role: .assistant, content: response.isEmpty ? raw : response)
                 messages.append(assistantMsg)
-                updatePlanIfNeeded(with: text, response: response)
+                save(assistantMsg)
+                let added = remember(saves)
+                if !added.isEmpty { savedFromReply[assistantMsg.id] = added }
+                updatePlanIfNeeded(with: text, response: assistantMsg.content)
             } catch {
                 let errMsg = ChatMessage(role: .assistant, content: "Coach offline: \(error.localizedDescription)")
+                offlineIDs.insert(errMsg.id)
                 messages.append(errMsg)
             }
             isTyping = false
