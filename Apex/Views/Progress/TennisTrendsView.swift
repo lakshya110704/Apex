@@ -135,7 +135,8 @@ struct TennisTrendsView: View {
                     )
                     .foregroundStyle(ApexColor.accent)
                 }
-                .chartXScale(domain: (weeks.first?.start ?? Date())...(weeks.last?.start ?? Date()))
+                // Points sit mid-week, so the domain must run to the end of the last week.
+                .chartXScale(domain: (weeks.first?.start ?? Date())...(weeks.last.flatMap { Calendar.current.date(byAdding: .day, value: 7, to: $0.start) } ?? Date()))
                 .chartYScale(domain: .automatic(includesZero: false))
                 .chartXAxis { weekAxis }
                 .frame(height: 140)
@@ -174,7 +175,7 @@ struct TennisTrendsView: View {
                         }
                     }
                 }
-                .chartYScale(domain: 0...100)
+                .chartYScale(domain: 0...118) // headroom so the label on a 100% bar stays inside the chart
                 .chartYAxis {
                     AxisMarks(values: [0.0, 50.0, 100.0]) { value in
                         AxisGridLine()
