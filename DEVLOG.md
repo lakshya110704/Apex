@@ -277,8 +277,35 @@ The reference app used a fully anatomical illustration with separately-colored q
 
 ---
 
+## Session 10 - Coach Memory
+
+### What
+The coach now remembers you between conversations: your goals, lasting notes (injuries, limits, preferences) and what you talked about on earlier days.
+
+### Why
+Every chat started from zero. The coach knew today's numbers but not that you were training for something, had a sore knee, or asked the same "can I skip legs?" question two days ago.
+
+### How it works
+- **Saved chat** - new `CoachMessageRecord` model. Every question and reply is stored on device. Opening the Coach tab reloads today's conversation. Earlier days are not shown on screen; they go into the prompt as a recap.
+- **Goals and notes** - new `CoachMemory` model (`goal` or `note`, text, date, whether the coach or the user added it).
+- **How the coach saves something** - the system prompt asks the model to end a reply with `[remember goal: ...]` or `[remember note: ...]` when you state something lasting that isn't saved yet (at most one per reply). The app strips that line, saves it (skipping duplicates, ignoring case and punctuation) and shows a "Saved goal: ..." chip under the reply. No extra AI call.
+- **What goes into each coach request** (`CoachMemoryEngine.promptSection`): up to 25 memories, goals first then newest notes, and one line per exchange for the last 3 days that had a chat (question up to 120 characters, the first sentence of the reply up to 160, at most 4 exchanges a day). Only today's messages are sent as real chat turns, capped at 20.
+- **Coach Memory sheet** - brain button on the Coach tab, or the "Remembers ..." strip. Add a goal or note yourself, swipe to forget one, forget past chats, or forget everything.
+
+### Also fixed
+- "Coach offline" error bubbles used to be sent back to the model as if the coach had said them. They are now shown but never saved or sent. A question whose reply failed is merged into the next question so turns still alternate (some providers reject two user turns in a row).
+
+### Tests
+8 new unit tests: tag parsing and stripping, untagged replies unchanged, duplicate check, empty prompt with nothing saved, goals-first and the 25 cap, the 3-day recap (today and older days left out), today's turns capped and alternating, and a SwiftData round trip of both models. 48 of 48 pass on the iOS 18.0 simulator (ad-hoc signed).
+
+Seen on the simulator: the brain button, the Coach Memory sheet, adding a goal by hand (it appears under Goals as "Added by you"), and the "Remembers 1 goal" strip on the Coach tab.
+
+### Not checked
+No chat message was sent (no key in the simulator), so saved chats and the saved chip have not been seen with a real reply. Whether real models actually emit the `[remember ...]` line reliably. That needs a real key. If a model writes it slightly differently (for example without brackets) it will show in the reply and not be saved.
+
+---
+
 ## Upcoming / Ideas
 
 - **Tennis match history + trends** - win rate over time, weakest drills, opponent notes
 - **Home screen widget** - XP, streak, focus project visible without opening app
-- **Persistent coach memory** - coach remembers past conversations across sessions, not just today's data
