@@ -1,12 +1,12 @@
 # Apex Privacy Policy
 
-Last updated: 2026-11-07
+Last updated: 2026-11-15
 
 Apex is a personal app. It has no account, no developer server, no analytics, no advertising and no tracking. This policy says what the app reads, where it goes and how to stop it.
 
 ## What stays on your device
 
-Apex stores your name, XP and streaks, workouts, meals (including meal photos), daily plans, check-ins and focus sessions in an on-device database. Your Google AI key is stored in the iOS Keychain on this device only. Nothing here is sent to the developer.
+Apex stores your name, XP and streaks, workouts, meals (including meal photos), daily plans, check-ins, focus sessions, your coach chat history and the goals and notes the coach remembers in an on-device database. Your Google AI key is stored in the iOS Keychain on this device only. Nothing here is sent to the developer.
 
 ## What the app reads
 
@@ -25,7 +25,7 @@ AI features are off until you pick a provider in Settings, add your own API key 
 - your logged workouts and meals for the day
 - today's calendar event titles and times
 - GitHub commit counts and repository names, if configured
-- your chat messages
+- your chat messages from today, a short recap of your coach chats from the last three days you chatted, and the goals and notes saved in Coach Memory (coach chat only)
 - meal photos or meal descriptions you submit
 
 Requests use your own API key, so the provider handles this data under the terms that apply to that key. Please read the provider's terms. The developer of Apex does not receive this data. Sharing is a separate switch for each provider, and each one is off until you turn it on.
@@ -43,6 +43,7 @@ Calorie, macro, recovery and coaching output is an AI estimate based on the data
 - Turn off sharing for a provider in Settings at any time. No request goes to that provider while it is off.
 - Remove a provider's API key by clearing its key field in Settings and saving. Keys are stored in the iOS Keychain on this device only.
 - Delete a workout or meal by long-pressing it in the app.
+- Open Coach Memory (the brain button on the Coach tab) to forget a single goal or note, all past chats, or everything the coach remembers.
 - Deleting the app removes the on-device database.
 - Data already sent to a provider is outside the app's control; see that provider's terms.
 
