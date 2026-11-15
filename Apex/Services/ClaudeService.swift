@@ -301,12 +301,15 @@ final class ClaudeService {
 
     // MARK: - Chat
 
-    func chat(messages: [ChatMessage], context: ApexContext) async throws -> String {
-        let systemPrompt = buildCoachSystemPrompt(context: context)
+    /// `memory` is the block from `CoachMemoryEngine.promptSection`: saved goals and notes plus a recap of earlier chats.
+    func chat(messages: [ChatMessage], context: ApexContext, memory: String = "") async throws -> String {
+        var systemPrompt = buildCoachSystemPrompt(context: context)
+        if memory.isNotEmpty { systemPrompt += "\n\n" + memory }
+        systemPrompt += "\n\n" + CoachMemoryEngine.saveInstructions
         let filtered = messages.filter { $0.role != .system }
 
         let aiMessages = filtered.map { AIMessage(role: $0.role == .user ? .user : .assistant, text: $0.content) }
-        return try await send(AIRequestSpec(system: systemPrompt, messages: aiMessages, maxTokens: 400))
+        return try await send(AIRequestSpec(system: systemPrompt, messages: aiMessages, maxTokens: 450))
     }
 
     private func buildCoachSystemPrompt(context: ApexContext) -> String {

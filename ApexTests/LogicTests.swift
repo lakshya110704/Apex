@@ -583,4 +583,115 @@ final class LogicTests: XCTestCase {
         XCTAssertTrue(days[11].active)
         XCTAssertTrue(ActiveDays.lastDays(0, dates: dates).isEmpty)
     }
+
+    // MARK: Coach memory
+
+    private func msg(_ role: ChatRole, _ text: String, daysAgo: Int, minute: Int = 0) -> ChatMessage {
+        let base = Calendar.current.startOfDay(for: day(-daysAgo)).addingTimeInterval(TimeInterval(9 * 3600 + minute * 60))
+        return ChatMessage(id: UUID(), role: role, content: text, timestamp: base)
+    }
+
+    func testRememberTagsAreSavedAndHidden() {
+        let reply = """
+        No. Your HRV is 62ms, above your 58ms average, so train.
+
+        [remember goal: Bench 100 kg by March]
+        [Remember Note:  left knee sore, no box jumps ]
+        """
+        let (text, saves) = CoachMemoryEngine.extract(from: reply)
+        XCTAssertEqual(text, "No. Your HRV is 62ms, above your 58ms average, so train.")
+        XCTAssertEqual(saves.map(\.kind), [.goal, .note])
+        XCTAssertEqual(saves.map(\.text), ["Bench 100 kg by March", "left knee sore, no box jumps"])
+    }
+
+    func testReplyWithoutTagsIsUnchanged() {
+        let (text, saves) = CoachMemoryEngine.extract(from: "Have the ice cream, you have 600 kcal left.")
+        XCTAssertEqual(text, "Have the ice cream, you have 600 kcal left.")
+        XCTAssertTrue(saves.isEmpty)
+    }
+
+    func testDuplicateMemoriesIgnoreCaseAndPunctuation() {
+        XCTAssertTrue(CoachMemoryEngine.isDuplicate("bench 100kg by March!", of: ["Bench 100kg by march"]))
+        XCTAssertFalse(CoachMemoryEngine.isDuplicate("Run a sub-20 5k", of: ["Bench 100kg by march"]))
+        XCTAssertTrue(CoachMemoryEngine.isDuplicate("  ", of: []))
+    }
+
+    func testPromptSectionIsEmptyWithNothingToRemember() {
+        XCTAssertEqual(CoachMemoryEngine.promptSection(memories: [], history: []), "")
+    }
+
+    func testPromptListsGoalsBeforeNotesAndCaps() {
+        var items = (0..<30).map { CoachMemoryEngine.Item(kind: .note, text: "note \($0)", createdAt: day(-$0)) }
+        items.append(.init(kind: .goal, text: "Win the club final", createdAt: day(-40)))
+        let chosen = CoachMemoryEngine.selectForPrompt(items)
+        XCTAssertEqual(chosen.count, CoachMemoryEngine.maxMemoriesInPrompt)
+        XCTAssertEqual(chosen.first?.text, "Win the club final")
+        XCTAssertEqual(chosen[1].text, "note 0", "newest note comes right after the goals")
+        let section = CoachMemoryEngine.promptSection(memories: items, history: [])
+        XCTAssertTrue(section.contains("COACH MEMORY"))
+        XCTAssertTrue(section.contains("- Goal: Win the club final"))
+        XCTAssertFalse(section.contains("EARLIER CONVERSATIONS"))
+    }
+
+    func testRecapCoversEarlierDaysOnlyNewestFirst() {
+        let history = [
+            msg(.user, "Can I skip legs?", daysAgo: 5),
+            msg(.assistant, "No. Sleep was 7.8h. Go train.", daysAgo: 5, minute: 1),
+            msg(.user, "Old one", daysAgo: 9),
+            msg(.assistant, "Old answer.", daysAgo: 9, minute: 1),
+            msg(.user, "Is pizza ok?", daysAgo: 1),
+            msg(.assistant, "One slice fits. You have 700 kcal left.", daysAgo: 1, minute: 1),
+            msg(.user, "Unanswered question", daysAgo: 1, minute: 2),
+            msg(.user, "Today's question", daysAgo: 0),
+            msg(.user, "Third oldest", daysAgo: 7),
+        ]
+        let recaps = CoachMemoryEngine.pastSessionRecaps(history)
+        XCTAssertEqual(recaps.count, 3, "only the last three days with a chat")
+        XCTAssertTrue(recaps[0].contains("asked \"Is pizza ok?\" → coach: \"One slice fits.\""))
+        XCTAssertTrue(recaps[0].contains("asked \"Unanswered question\""))
+        XCTAssertTrue(recaps[1].contains("Can I skip legs?"))
+        XCTAssertTrue(recaps[2].contains("Third oldest"))
+        XCTAssertFalse(recaps.joined().contains("Today's question"))
+        XCTAssertFalse(recaps.joined().contains("Old one"))
+    }
+
+    func testCurrentSessionIsTodayCappedAndAlternating() {
+        var history = [msg(.user, "yesterday", daysAgo: 1)]
+        for i in 0..<30 {
+            history.append(msg(i % 2 == 0 ? .user : .assistant, "m\(i)", daysAgo: 0, minute: i))
+        }
+        let turns = CoachMemoryEngine.currentSession(history)
+        XCTAssertLessThanOrEqual(turns.count, CoachMemoryEngine.maxCurrentMessages)
+        XCTAssertEqual(turns.first?.role, .user)
+        XCTAssertEqual(turns.last?.content, "m29")
+        XCTAssertFalse(turns.contains { $0.content == "yesterday" })
+
+        // A question whose reply failed is merged into the next one, so turns still alternate.
+        let merged = CoachMemoryEngine.currentSession([
+            msg(.user, "first", daysAgo: 0), msg(.user, "second", daysAgo: 0, minute: 1),
+        ])
+        XCTAssertEqual(merged.count, 1)
+        XCTAssertEqual(merged[0].content, "first\n\nsecond")
+    }
+
+    func testChatAndMemoriesPersist() throws {
+        let container = try ModelContainer(
+            for: CoachMessageRecord.self, CoachMemory.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+        let original = ChatMessage(role: .assistant, content: "Train today.")
+        context.insert(CoachMessageRecord(original))
+        context.insert(CoachMemory(kind: .goal, text: "Bench 100 kg", addedByCoach: true))
+        try context.save()
+
+        let records = try context.fetch(FetchDescriptor<CoachMessageRecord>())
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0].chatMessage.id, original.id)
+        XCTAssertEqual(records[0].chatMessage.role, .assistant)
+        XCTAssertEqual(records[0].chatMessage.content, "Train today.")
+        let memories = try context.fetch(FetchDescriptor<CoachMemory>())
+        XCTAssertEqual(memories.first?.kind, .goal)
+        XCTAssertEqual(memories.first?.item.text, "Bench 100 kg")
+    }
 }
