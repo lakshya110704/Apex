@@ -188,7 +188,7 @@ struct TennisTrendsView: View {
                     }
                 }
                 .frame(height: 150)
-                Text("Won when you take more sets, or more games if no sets were logged. Labels show wins–losses.")
+                Text("Won when you take more sets, or more games if no sets were logged. Labels show wins–losses, plus draws when there are any.")
                     .font(.caption2)
                     .foregroundStyle(ApexColor.textSecondary)
             }
@@ -295,8 +295,8 @@ struct TennisTrendsView: View {
 
     private func hoursText(_ minutes: Int) -> String {
         if minutes < 60 { return "\(minutes)m" }
-        let hours = Double(minutes) / 60
-        return hours.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(hours))h" : String(format: "%.1fh", hours)
+        let tenths = Int((Double(minutes) / 6).rounded())  // hours to one decimal, rounded half up
+        return tenths % 10 == 0 ? "\(tenths / 10)h" : "\(tenths / 10).\(tenths % 10)h"
     }
 
     private func sessionsText(_ count: Int) -> String {

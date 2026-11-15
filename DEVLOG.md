@@ -305,7 +305,29 @@ No chat message was sent (no key in the simulator), so saved chats and the saved
 
 ---
 
+## Session 11 - Tennis Trends
+
+### What
+A Tennis Trends screen (Progress tab card, or "Tennis trends" in the Workouts Recent header): this week's hours, a week streak, overall win rate, recent average heart rate, hours per week for 12 weeks, average heart rate per week, win rate by month for 6 months, most practiced drills, drills not practiced in 3 weeks, and a record against each opponent with the latest session note.
+
+### How it works
+- Pure logic in `Utils/TennisTrends.swift`, working on plain `Entry` values so it is tested without SwiftData. No new model; it reads `WorkoutSession` and its `TennisDetails`.
+- A session is a match only when a score was logged. Sets decide it, games only when no sets were logged; equal is a draw. Drill-only sessions are not matches.
+- Week streak counts back from this week; not having played yet this week does not break it.
+- Opponents are matched ignoring case and extra spaces. The note shown is from the newest session against them that has notes.
+- Charts use Swift Charts.
+
+### Not possible yet
+"Weakest drills" from the idea list: the app doesn't rate drills, so the screen shows drills you have stopped practicing instead. A per-drill rating in the tennis log would make this possible.
+
+### Tests
+7 new unit tests with a fixed calendar (match result rules, record and win rate, weekly buckets and heart rate mean, week streak, monthly win rate, drills counted once per session and stale drills, opponent grouping and notes). 55 of 55 pass on the iOS 18.0 simulator (ad-hoc signed).
+
+Seen on the simulator in dark and light with 10 temporary sample sessions (removed afterwards); every number checked against the sample data. Two chart bugs found that way and fixed: the last heart rate point sat outside the plot, and a 100% win rate label ran into the card header. Installed on the iPhone; not yet seen with real sessions.
+
+---
+
 ## Upcoming / Ideas
 
-- **Tennis match history + trends** - win rate over time, weakest drills, opponent notes
+- **Drill ratings** - rate each drill in the tennis log so trends can show weakest drills
 - **Home screen widget** - XP, streak, focus project visible without opening app
