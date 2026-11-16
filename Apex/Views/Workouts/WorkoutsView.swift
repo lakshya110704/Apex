@@ -336,7 +336,7 @@ struct WorkoutsView: View {
     private struct DayItem: Identifiable { let id: Int }
 
     private func planned(on dayNum: Int) -> [WorkoutScheduleEntry] {
-        scheduleEntries.filter { $0.dayOfWeek == dayNum && $0.isEnabled }
+        scheduleEntries.filter { $0.dayOfWeek == dayNum && $0.isActive(on: date(for: dayNum)) }
     }
 
     private var weekProgress: (done: Int, total: Int) {

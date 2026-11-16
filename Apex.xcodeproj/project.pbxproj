@@ -41,6 +41,7 @@
 		A0E914E868C36BD06BE0D17D /* GitHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC493EB28BFFD409F00AA6 /* GitHubService.swift */; };
 		A3BC392CF33F6A6751DC1593 /* MuscleGroupTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */; };
 		C0AC4E0001A1B2C3D4E5F603 /* CoachMemoryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AC4E0001A1B2C3D4E5F604 /* CoachMemoryEngine.swift */; };
+		D1A9E70001A1B2C3D4E5F601 /* PlanUpdateEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A9E70001A1B2C3D4E5F602 /* PlanUpdateEngine.swift */; };
 		A584E28609BDD217A80E61B1 /* DailyPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 578BBD23F0FA422AB74E5EF4 /* DailyPlan.swift */; };
 		AAA14CB1206560601201601D /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27F88561590E1B3794330FB /* TodayView.swift */; };
 		B0CFFE768B94B0E069944EC4 /* EveningCheckIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51BBE7024EB86B02903D48F /* EveningCheckIn.swift */; };
@@ -113,6 +114,7 @@
 		CA030E1B0BAE24F5D9128790 /* ApexTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ApexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupTracker.swift; sourceTree = "<group>"; };
 		C0AC4E0001A1B2C3D4E5F604 /* CoachMemoryEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMemoryEngine.swift; sourceTree = "<group>"; };
+		D1A9E70001A1B2C3D4E5F602 /* PlanUpdateEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanUpdateEngine.swift; sourceTree = "<group>"; };
 		CBA7123ECF75EAB39CE9C0BF /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		DA3201E438E229D83003D213 /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		DB9C73FF778EF13CEC432BC3 /* ApexCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApexCard.swift; sourceTree = "<group>"; };
@@ -211,6 +213,7 @@
 				F2257CF2BCAC6CF6159CECD6 /* KeychainStore.swift */,
 				CB66C179ED54131F01F00AD0 /* MuscleGroupTracker.swift */,
 				C0AC4E0001A1B2C3D4E5F604 /* CoachMemoryEngine.swift */,
+				D1A9E70001A1B2C3D4E5F602 /* PlanUpdateEngine.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -462,6 +465,7 @@
 				D73C30C1B46C94352E202A6A /* MorningCheckInView.swift in Sources */,
 				A3BC392CF33F6A6751DC1593 /* MuscleGroupTracker.swift in Sources */,
 				C0AC4E0001A1B2C3D4E5F603 /* CoachMemoryEngine.swift in Sources */,
+				D1A9E70001A1B2C3D4E5F601 /* PlanUpdateEngine.swift in Sources */,
 				2D887DED581355E152DBC9A3 /* MuscleHeatmapView.swift in Sources */,
 				E3D9D524ED5087357A65CBF5 /* NotificationService.swift in Sources */,
 				B2F88A2F0AE92D10981B4BB5 /* NutritionView.swift in Sources */,

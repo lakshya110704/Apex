@@ -42,15 +42,23 @@ final class CoachMemory {
     var text: String
     var createdAt: Date
     var addedByCoach: Bool
+    /// Limits for something that only matters for a while ("furniture shopping today at 13:30"). Nil means always.
+    var validFrom: Date?
+    var validUntil: Date?
 
     var kind: CoachMemoryKind { CoachMemoryKind(rawValue: kindRaw) ?? .note }
-    var item: CoachMemoryEngine.Item { .init(kind: kind, text: text, createdAt: createdAt) }
+    var item: CoachMemoryEngine.Item {
+        .init(kind: kind, text: text, createdAt: createdAt, validFrom: validFrom, validUntil: validUntil)
+    }
 
-    init(kind: CoachMemoryKind, text: String, addedByCoach: Bool, createdAt: Date = Date()) {
+    init(kind: CoachMemoryKind, text: String, addedByCoach: Bool, createdAt: Date = Date(),
+         validFrom: Date? = nil, validUntil: Date? = nil) {
         self.id = UUID()
         self.kindRaw = kind.rawValue
         self.text = text
         self.createdAt = createdAt
         self.addedByCoach = addedByCoach
+        self.validFrom = validFrom
+        self.validUntil = validUntil
     }
 }
