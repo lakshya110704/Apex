@@ -73,7 +73,9 @@ struct WorkoutScheduleEditorView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.caption2)
                         .foregroundStyle(ApexColor.success)
-                    Text(dayEntries.map { $0.workoutType.rawValue }.joined(separator: ", "))
+                    Text(dayEntries.map { entry in
+                        entry.timingLabel.isEmpty ? entry.workoutType.rawValue : "\(entry.workoutType.rawValue) \(entry.timingLabel)"
+                    }.joined(separator: ", "))
                         .font(.caption)
                         .foregroundStyle(ApexColor.textSecondary)
                 }

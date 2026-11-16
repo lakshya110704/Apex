@@ -694,4 +694,150 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(memories.first?.kind, .goal)
         XCTAssertEqual(memories.first?.item.text, "Bench 100 kg")
     }
+
+    // MARK: Plan updates from your info
+
+    private func ymd(_ text: String) -> Date { CoachMemoryEngine.parseDay(text)! }
+
+    func testDatedNoteTagsSetTheirDays() {
+        let reply = """
+        Got it, I'll plan around it.
+        [remember note for 2026-11-16: Furniture shopping at 13:30]
+        [remember note until 2026-11-30: Shoulder sore, no overhead serves]
+        [remember goal from 2026-12-01: Play a tournament every month]
+        """
+        let (text, saves) = CoachMemoryEngine.extract(from: reply)
+        XCTAssertEqual(text, "Got it, I'll plan around it.")
+        XCTAssertEqual(saves.count, 3)
+        XCTAssertEqual(saves[0].text, "Furniture shopping at 13:30")
+        XCTAssertEqual(saves[0].validFrom, ymd("2026-11-16"))
+        XCTAssertEqual(saves[0].validUntil, ymd("2026-11-16"))
+        XCTAssertNil(saves[1].validFrom)
+        XCTAssertEqual(saves[1].validUntil, ymd("2026-11-30"))
+        XCTAssertEqual(saves[2].kind, .goal)
+        XCTAssertEqual(saves[2].validFrom, ymd("2026-12-01"))
+        XCTAssertNil(saves[2].validUntil)
+    }
+
+    func testOneDayNoteIsActiveOnlyThatDayThenExpires() {
+        let today = Date().startOfDay
+        let note = CoachMemoryEngine.Item(kind: .note, text: "Furniture shopping at 13:30", validFrom: today, validUntil: today)
+        XCTAssertTrue(note.isActive(on: Date()))
+        XCTAssertFalse(note.isActive(on: day(1)))
+        XCTAssertFalse(note.isActive(on: day(-1)))
+        XCTAssertFalse(note.isExpired(now: Date()))
+        XCTAssertTrue(note.isExpired(now: day(1)))
+        XCTAssertEqual(note.scopeLabel(), "today only")
+        XCTAssertFalse(CoachMemoryEngine.Item(kind: .goal, text: "x").isExpired(now: day(400)))
+        // An expired note is left out of the coach prompt.
+        let old = CoachMemoryEngine.Item(kind: .note, text: "Dentist", validFrom: day(-2), validUntil: day(-2))
+        XCTAssertFalse(CoachMemoryEngine.promptSection(memories: [old], history: []).contains("Dentist"))
+        XCTAssertTrue(CoachMemoryEngine.promptSection(memories: [note], history: []).contains("(today only)"))
+    }
+
+    func testScheduleTagIsParsedAndHidden() {
+        let reply = """
+        Tennis at 11:30 on weekdays works with your sleep.
+        [schedule tennis: mon tue wed thu fri 11:30 from 2026-11-18]
+        """
+        let (text, changes) = PlanUpdateEngine.extractScheduleChanges(from: reply)
+        XCTAssertEqual(text, "Tennis at 11:30 on weekdays works with your sleep.")
+        XCTAssertEqual(changes, [.init(type: .tennis, days: [2, 3, 4, 5, 6], startMinutes: 11 * 60 + 30, startsOn: ymd("2026-11-18"))])
+        XCTAssertEqual(PlanUpdateEngine.describe(changes[0]), "Tennis Mon–Fri at 11:30 from Wed 18 Nov")
+    }
+
+    func testScheduleDayForms() {
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .gym, "weekdays")?.days, [2, 3, 4, 5, 6])
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .gym, "Mon-Fri 07:00")?.days, [2, 3, 4, 5, 6])
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .gym, "fri-mon")?.days, [2, 6, 7, 1])
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .run, "Tuesday, Thursday 18:00")?.startMinutes, 18 * 60)
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .run, "saturday")?.days, [7])
+        XCTAssertNil(PlanUpdateEngine.parseSchedule(type: .run, "11:30"), "a change must name its days")
+        XCTAssertTrue(PlanUpdateEngine.extractScheduleChanges(from: "[schedule yoga: mon]").changes.isEmpty, "unknown sport")
+        XCTAssertEqual(PlanUpdateEngine.daysLabel([7, 1]), "weekends")
+        XCTAssertEqual(PlanUpdateEngine.daysLabel([4, 2]), "Mon, Wed")
+    }
+
+    func testScheduleEntryStartsOnItsStartDate() {
+        let entry = WorkoutScheduleEntry(dayOfWeek: 4, workoutType: .tennis, startMinutes: 690, startsOn: day(2))
+        XCTAssertFalse(entry.isActive(on: Date()))
+        XCTAssertTrue(entry.isActive(on: day(2)))
+        XCTAssertTrue(entry.isActive(on: day(9)))
+        entry.isEnabled = false
+        XCTAssertFalse(entry.isActive(on: day(9)))
+        XCTAssertTrue(WorkoutScheduleEntry(dayOfWeek: 2, workoutType: .gym).isActive(on: Date()))
+    }
+
+    func testPlanInputsCoverActiveInfoInAStableOrder() {
+        let today = Date().startOfDay
+        let memories: [CoachMemoryEngine.Item] = [
+            .init(kind: .note, text: "Furniture shopping at 13:30", createdAt: day(0), validFrom: today, validUntil: today),
+            .init(kind: .goal, text: "Win the club final", createdAt: day(-10)),
+            .init(kind: .note, text: "Tomorrow's dentist", validFrom: day(1), validUntil: day(1)),
+        ]
+        let schedule: [PlanUpdateEngine.ScheduleItem] = [.init(type: .gym), .init(type: .tennis, startMinutes: 690)]
+        let lines = PlanUpdateEngine.inputLines(memories: memories, schedule: schedule)
+        XCTAssertEqual(lines, [
+            "Goal: Win the club final",
+            "Note (today only): Furniture shopping at 13:30",
+            "Scheduled: Tennis at 11:30",
+            "Scheduled: Gym",
+        ])
+        XCTAssertEqual(PlanUpdateEngine.key(lines),
+                       PlanUpdateEngine.key(PlanUpdateEngine.inputLines(memories: memories.reversed(), schedule: schedule.reversed())))
+        let prompt = PlanUpdateEngine.promptSection(lines: lines, previousPlan: "")
+        XCTAssertTrue(prompt.contains("ABOUT THE ATHLETE"))
+        XCTAssertFalse(prompt.contains("PREVIOUS PLAN"))
+        XCTAssertTrue(PlanUpdateEngine.promptSection(lines: [], previousPlan: "07:00 | morning | Walk").contains("Keep items before"))
+        XCTAssertEqual(PlanUpdateEngine.promptSection(lines: [], previousPlan: " "), "")
+    }
+
+    func testRebuildRunsOnlyWhenInfoChanged() {
+        XCTAssertTrue(PlanUpdateEngine.needsRebuild(planKey: "a", currentKey: "b", aiReady: true, isGenerating: false, lastFailedKey: nil))
+        XCTAssertFalse(PlanUpdateEngine.needsRebuild(planKey: "a", currentKey: "a", aiReady: true, isGenerating: false, lastFailedKey: nil))
+        XCTAssertFalse(PlanUpdateEngine.needsRebuild(planKey: nil, currentKey: "b", aiReady: true, isGenerating: false, lastFailedKey: nil),
+                       "no plan yet: wait for Generate")
+        XCTAssertFalse(PlanUpdateEngine.needsRebuild(planKey: "a", currentKey: "b", aiReady: false, isGenerating: false, lastFailedKey: nil))
+        XCTAssertFalse(PlanUpdateEngine.needsRebuild(planKey: "a", currentKey: "b", aiReady: true, isGenerating: true, lastFailedKey: nil))
+        XCTAssertFalse(PlanUpdateEngine.needsRebuild(planKey: "a", currentKey: "b", aiReady: true, isGenerating: false, lastFailedKey: "b"),
+                       "a failed rebuild is not retried for the same info")
+    }
+
+    func testAdjustmentSummaryNamesWhatChanged() {
+        let old = "Goal: Win the club final"
+        let new = "Goal: Win the club final\nNote (today only): Furniture shopping at 13:30\nScheduled: Tennis at 11:30"
+        XCTAssertEqual(PlanUpdateEngine.adjustmentSummary(oldKey: old, newKey: new), "Furniture shopping at 13:30; Tennis at 11:30")
+        XCTAssertEqual(PlanUpdateEngine.adjustmentSummary(oldKey: new, newKey: old), "removed Furniture shopping at 13:30; Tennis at 11:30")
+        XCTAssertEqual(PlanUpdateEngine.adjustmentSummary(oldKey: old, newKey: old), "")
+    }
+
+    func testSaveInstructionsGiveTodaysDateAndTags() {
+        let text = CoachMemoryEngine.saveInstructions(today: ymd("2026-11-16"))
+        XCTAssertTrue(text.contains("2026-11-16"))
+        XCTAssertTrue(text.contains("[remember note for YYYY-MM-DD:"))
+        XCTAssertTrue(text.contains("[schedule "))
+    }
+
+    func testPlanInfoFieldsPersist() throws {
+        let container = try ModelContainer(
+            for: CoachMemory.self, WorkoutScheduleEntry.self, DailyPlan.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+        let today = Date().startOfDay
+        context.insert(CoachMemory(kind: .note, text: "Furniture shopping at 13:30", addedByCoach: true, validFrom: today, validUntil: today))
+        context.insert(WorkoutScheduleEntry(dayOfWeek: 4, workoutType: .tennis, startMinutes: 690, startsOn: day(2), addedByCoach: true))
+        context.insert(DailyPlan(planText: "[]", infoKeys: "Scheduled: Tennis at 11:30", adjustedFor: "Tennis at 11:30"))
+        try context.save()
+
+        let memory = try XCTUnwrap(context.fetch(FetchDescriptor<CoachMemory>()).first)
+        XCTAssertEqual(memory.item.validUntil, today)
+        let entry = try XCTUnwrap(context.fetch(FetchDescriptor<WorkoutScheduleEntry>()).first)
+        XCTAssertEqual(entry.startMinutes, 690)
+        XCTAssertTrue(entry.addedByCoach)
+        XCTAssertEqual(entry.timingLabel.hasPrefix("at 11:30 from "), true)
+        let plan = try XCTUnwrap(context.fetch(FetchDescriptor<DailyPlan>()).first)
+        XCTAssertEqual(plan.infoKeys, "Scheduled: Tennis at 11:30")
+        XCTAssertEqual(plan.adjustedFor, "Tennis at 11:30")
+    }
 }

@@ -30,8 +30,8 @@ struct CoachView: View {
     /// Error bubbles are shown but never saved or sent back to the model.
     @State private var offlineIDs: Set<UUID> = []
     @State private var loadedHistory = false
-    /// Memories the coach saved from a given reply, shown as a chip under it.
-    @State private var savedFromReply: [UUID: [CoachMemoryEngine.Item]] = [:]
+    /// What the coach saved from a given reply (memories and schedule changes), shown as a chip under it.
+    @State private var savedFromReply: [UUID: [String]] = [:]
 
     private var todayPlan: DailyPlan? { plans.first(where: { $0.date.isToday }) }
 
@@ -298,11 +298,11 @@ struct CoachView: View {
         .buttonStyle(PressableStyle())
     }
 
-    private func savedChip(_ items: [CoachMemoryEngine.Item]) -> some View {
+    private func savedChip(_ labels: [String]) -> some View {
         Button { showingMemory = true } label: {
             HStack(spacing: 6) {
                 Image(systemName: "checkmark.circle.fill")
-                Text("Saved \(items.map { "\($0.kind.label.lowercased()): \($0.text)" }.joined(separator: ", "))")
+                Text("Saved \(labels.joined(separator: ", ")). Today's plan will update.")
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             }
@@ -336,12 +336,35 @@ struct CoachView: View {
         var known = memories.map(\.text)
         var added: [CoachMemoryEngine.Item] = []
         for item in items where !CoachMemoryEngine.isDuplicate(item.text, of: known) {
-            context.insert(CoachMemory(kind: item.kind, text: item.text, addedByCoach: true))
+            context.insert(CoachMemory(kind: item.kind, text: item.text, addedByCoach: true,
+                                       validFrom: item.validFrom, validUntil: item.validUntil))
             known.append(item.text)
             added.append(item)
         }
         if !added.isEmpty { try? context.save() }
         return added
+    }
+
+    /// Applies weekly schedule changes the coach heard in chat. A session of the same type on the same day is updated,
+    /// otherwise a new one is added. Everything changed is marked so it shows in Coach Memory and can be undone there.
+    private func applySchedule(_ changes: [PlanUpdateEngine.ScheduleChange]) -> [String] {
+        guard !changes.isEmpty else { return [] }
+        for change in changes {
+            for day in change.days {
+                if let existing = scheduleEntries.first(where: { $0.dayOfWeek == day && $0.workoutType == change.type }) {
+                    existing.isEnabled = true
+                    existing.startMinutes = change.startMinutes ?? existing.startMinutes
+                    existing.startsOn = change.startsOn
+                    existing.addedByCoach = true
+                } else {
+                    context.insert(WorkoutScheduleEntry(dayOfWeek: day, workoutType: change.type,
+                                                        startMinutes: change.startMinutes, startsOn: change.startsOn,
+                                                        addedByCoach: true))
+                }
+            }
+        }
+        try? context.save()
+        return changes.map { "schedule: " + PlanUpdateEngine.describe($0) }
     }
 
     // MARK: - Welcome Prompts
@@ -526,13 +549,13 @@ struct CoachView: View {
             do {
                 let apexCtx = buildApexContext()
                 let raw = try await claude.chat(messages: turns, context: apexCtx, memory: memoryBlock)
-                let (response, saves) = CoachMemoryEngine.extract(from: raw)
+                let (withoutMemory, saves) = CoachMemoryEngine.extract(from: raw)
+                let (response, scheduleChanges) = PlanUpdateEngine.extractScheduleChanges(from: withoutMemory)
                 let assistantMsg = ChatMessage(role: .assistant, content: response.isEmpty ? raw : response)
                 messages.append(assistantMsg)
                 save(assistantMsg)
-                let added = remember(saves)
-                if !added.isEmpty { savedFromReply[assistantMsg.id] = added }
-                updatePlanIfNeeded(with: text, response: assistantMsg.content)
+                let saved = remember(saves).map(\.savedLabel) + applySchedule(scheduleChanges)
+                if !saved.isEmpty { savedFromReply[assistantMsg.id] = saved }
             } catch {
                 let errMsg = ChatMessage(role: .assistant, content: "Coach offline: \(error.localizedDescription)")
                 offlineIDs.insert(errMsg.id)
@@ -561,7 +584,7 @@ struct CoachView: View {
         // Schedule vs actual
         let todayWeekday = cal.component(.weekday, from: Date())
         let plannedToday = scheduleEntries
-            .filter { $0.dayOfWeek == todayWeekday && $0.isEnabled }
+            .filter { $0.dayOfWeek == todayWeekday && $0.isActive(on: Date()) }
             .map { $0.workoutType.rawValue }
         let completedToday = workoutsToday.map { $0.type.rawValue }
 
@@ -572,7 +595,7 @@ struct CoachView: View {
         // Missed workouts this week
         var missedCount = 0
         for entry in scheduleEntries where entry.isEnabled {
-            if let dayDate = dateInCurrentWeek(for: entry.dayOfWeek),
+            if let dayDate = dateInCurrentWeek(for: entry.dayOfWeek), entry.isActive(on: dayDate),
                dayDate < Date() && !cal.isDateInToday(dayDate) {
                 let done = workouts.contains { cal.isDate($0.date, inSameDayAs: dayDate) && $0.type == entry.workoutType }
                 if !done { missedCount += 1 }
@@ -627,12 +650,5 @@ struct CoachView: View {
         let monday = weekInterval.start
         let offset = (dayOfWeek == 1) ? 6 : (dayOfWeek - 2)
         return cal.date(byAdding: .day, value: offset, to: monday)
-    }
-
-    private func updatePlanIfNeeded(with userText: String, response: String) {
-        let planKeywords = ["plan", "schedule", "adjust", "change", "reschedule", "skip", "modify"]
-        let isPlanRelated = planKeywords.contains { userText.localizedCaseInsensitiveContains($0) }
-        guard isPlanRelated, let plan = todayPlan else { return }
-        plan.userModifications += "\n---\nUser: \(userText)\nCoach: \(response)"
     }
 }

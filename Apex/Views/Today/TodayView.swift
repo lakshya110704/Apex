@@ -9,6 +9,8 @@ struct TodayView: View {
     @Query(filter: #Predicate<DailyPlan> { _ in true }, sort: \DailyPlan.date, order: .reverse)
     private var plans: [DailyPlan]
     @Query(sort: \MorningCheckIn.date, order: .reverse) private var checkIns: [MorningCheckIn]
+    @Query(sort: \CoachMemory.createdAt, order: .reverse) private var memories: [CoachMemory]
+    @Query private var scheduleEntries: [WorkoutScheduleEntry]
 
     var healthKit: HealthKitService
     var claude: ClaudeService
@@ -25,6 +27,10 @@ struct TodayView: View {
     @State private var toastAchievement: Achievement?
     @State private var xpFloatOffset: CGFloat = 0
     @State private var xpFloatOpacity: Double = 0
+    @State private var showingMemory = false
+    /// Info an automatic rebuild already failed for, so a broken key is not retried in a loop.
+    @State private var autoRebuildFailedKey: String?
+    @State private var autoRebuildError: String?
 
     private var profile: UserProfile? { profiles.first }
     private var todayPlan: DailyPlan? { plans.first(where: { $0.date.isToday }) }
@@ -32,6 +38,16 @@ struct TodayView: View {
     private var todayWorkouts: [WorkoutSession] { workouts.filter { $0.date.isToday } }
     private var todayMeals: [MealEntry] { meals.filter { $0.date.isToday } }
     private var totalCaloriesToday: Int { todayMeals.reduce(0) { $0 + $1.estimatedCalories } }
+
+    /// Your info that applies today: goals, notes and today's scheduled sessions. The plan is rebuilt when it changes.
+    private var planInputLines: [String] {
+        let weekday = Calendar.current.component(.weekday, from: Date())
+        let schedule = scheduleEntries
+            .filter { $0.dayOfWeek == weekday && $0.isActive(on: Date()) }
+            .map(\.planItem)
+        return PlanUpdateEngine.inputLines(memories: memories.map(\.item), schedule: schedule)
+    }
+    private var planInputKey: String { PlanUpdateEngine.key(planInputLines) }
 
     var body: some View {
         NavigationStack {
@@ -125,6 +141,12 @@ struct TodayView: View {
                 }
                 checkAchievementToast()
             }
+            .onAppear {
+                forgetExpiredNotes()
+                rebuildPlanIfInfoChanged()
+            }
+            .onChange(of: planInputKey) { _, _ in rebuildPlanIfInfoChanged() }
+            .sheet(isPresented: $showingMemory) { CoachMemoryView() }
             .onChange(of: gamification.xpAnimationAmount) { _, _ in
                 animateXP()
             }
@@ -239,8 +261,33 @@ struct TodayView: View {
                 } else {
                     planContent(blocks)
                 }
+                if plan.adjustedFor.isNotEmpty {
+                    Label("Adjusted for: \(plan.adjustedFor)", systemImage: "arrow.triangle.2.circlepath")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(ApexColor.accent)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let autoRebuildError {
+                    Label("Couldn't update the plan for your new info: \(autoRebuildError)", systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(ApexColor.warning)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             } else {
                 emptyPlan
+            }
+
+            if claude.isConfigured {
+                Button { showingMemory = true } label: {
+                    HStack(spacing: 4) {
+                        Text("Something changed? Tell Apex")
+                        Image(systemName: "chevron.right").font(.caption2.weight(.bold))
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ApexColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Add a goal, an injury or a change to your day. The plan updates itself.")
             }
         }
         .padding(18)
@@ -777,10 +824,31 @@ struct TodayView: View {
         }
     }
 
-    private func generatePlan() async {
-        planError = nil
+    /// Rebuilds today's plan when it was made from different info than you have now. The plan is never edited by hand.
+    private func rebuildPlanIfInfoChanged() {
+        let key = planInputKey
+        guard PlanUpdateEngine.needsRebuild(planKey: todayPlan?.infoKeys, currentKey: key,
+                                            aiReady: claude.isConfigured, isGenerating: isGeneratingPlan,
+                                            lastFailedKey: autoRebuildFailedKey) else { return }
+        Task { await generatePlan(automatic: true) }
+    }
+
+    /// One-day and temporary notes go away by themselves once their last day has passed.
+    private func forgetExpiredNotes() {
+        let expired = memories.filter { $0.item.isExpired() }
+        guard !expired.isEmpty else { return }
+        for memory in expired { context.delete(memory) }
+        try? context.save()
+    }
+
+    private func generatePlan(automatic: Bool = false) async {
+        guard !isGeneratingPlan else { return }
+        if !automatic { planError = nil }
         isGeneratingPlan = true
-        defer { isGeneratingPlan = false }
+        let lines = planInputLines
+        let key = PlanUpdateEngine.key(lines)
+        let previousText = todayPlan?.planText ?? ""
+        let previousKey = todayPlan?.infoKeys ?? ""
         do {
             let ctx = ApexContext(
                 userName: profile?.name ?? "Athlete",
@@ -808,15 +876,29 @@ struct TodayView: View {
                 todayMeals: todayMeals.count,
                 calendarEvents: calendar.todayEvents.map { $0.summary },
                 githubCommitsToday: github.todayCommits,
-                githubActiveRepos: github.activeRepos
+                githubActiveRepos: github.activeRepos,
+                planInfo: PlanUpdateEngine.promptSection(lines: lines, previousPlan: automatic ? previousText : "")
             )
             let planText = try await claude.generateDailyPlan(context: ctx)
+            let adjusted = automatic ? PlanUpdateEngine.adjustmentSummary(oldKey: previousKey, newKey: key) : ""
             // Delete stale plans for today, then insert fresh
             for old in plans.filter({ $0.date.isToday }) { context.delete(old) }
-            context.insert(DailyPlan(date: Date(), planText: planText))
+            context.insert(DailyPlan(date: Date(), planText: planText, infoKeys: key, adjustedFor: adjusted))
+            try? context.save()
+            autoRebuildFailedKey = nil
+            autoRebuildError = nil
         } catch {
-            planError = error.localizedDescription
+            if automatic {
+                // Keep the current plan on screen and say why it wasn't updated.
+                autoRebuildFailedKey = key
+                autoRebuildError = error.localizedDescription
+            } else {
+                planError = error.localizedDescription
+            }
         }
+        isGeneratingPlan = false
+        // Info may have changed again while this plan was being built.
+        rebuildPlanIfInfoChanged()
     }
 
     private func checkAchievementToast() {

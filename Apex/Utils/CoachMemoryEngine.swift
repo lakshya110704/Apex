@@ -7,6 +7,44 @@ enum CoachMemoryEngine {
         let kind: CoachMemoryKind
         let text: String
         var createdAt: Date = Date()
+        /// First and last day this applies, for things like "furniture shopping today at 13:30". Nil means no limit.
+        var validFrom: Date? = nil
+        var validUntil: Date? = nil
+
+        func isActive(on date: Date, calendar: Calendar = .current) -> Bool {
+            let day = calendar.startOfDay(for: date)
+            if let validFrom, calendar.startOfDay(for: validFrom) > day { return false }
+            if let validUntil, calendar.startOfDay(for: validUntil) < day { return false }
+            return true
+        }
+
+        /// Past its last day, so it can be forgotten.
+        func isExpired(now: Date = Date(), calendar: Calendar = .current) -> Bool {
+            guard let validUntil else { return false }
+            return calendar.startOfDay(for: validUntil) < calendar.startOfDay(for: now)
+        }
+
+        func isSingleDay(calendar: Calendar = .current) -> Bool {
+            guard let validFrom, let validUntil else { return false }
+            return calendar.isDate(validFrom, inSameDayAs: validUntil)
+        }
+
+        /// "today only", "Tue 18 Nov only", "until Sun 30 Nov", "from Wed 18 Nov", or empty.
+        func scopeLabel(now: Date = Date(), calendar: Calendar = .current) -> String {
+            if isSingleDay(calendar: calendar), let validFrom {
+                return calendar.isDate(validFrom, inSameDayAs: now) ? "today only" : "\(CoachMemoryEngine.shortDate(validFrom)) only"
+            }
+            var parts: [String] = []
+            if let validFrom { parts.append("from \(CoachMemoryEngine.shortDate(validFrom))") }
+            if let validUntil { parts.append("until \(CoachMemoryEngine.shortDate(validUntil))") }
+            return parts.joined(separator: " ")
+        }
+
+        /// "note: Furniture shopping at 13:30 (today only)", for the chip under a coach reply.
+        var savedLabel: String {
+            let scope = scopeLabel()
+            return "\(kind.label.lowercased()): \(text)" + (scope.isEmpty ? "" : " (\(scope))")
+        }
     }
 
     /// Most memories sent with a chat. Goals first, then the newest notes.
@@ -23,22 +61,29 @@ enum CoachMemoryEngine {
     // MARK: Prompt
 
     /// Tells the model how to save something. Kept short so it costs few tokens on every call.
-    static let saveInstructions = """
-    MEMORY: If the athlete states a lasting goal, injury, limitation or preference that is not already in COACH MEMORY, \
-    add it on its own line at the very end of your reply as [remember goal: ...] or [remember note: ...] \
-    (one short sentence, their words, max one per reply). Never save one-off questions or today's numbers. \
-    The app hides this line and shows it as saved.
-    """
+    static func saveInstructions(today: Date = Date()) -> String {
+        """
+        MEMORY: Today is \(shortDate(today)) (\(isoDay(today))). If the athlete states a lasting goal, injury, limitation or preference \
+        that is not already in COACH MEMORY, add it on its own line at the very end of your reply as [remember goal: ...] or [remember note: ...] \
+        (one short sentence, their words). For something that matters on one day only (an appointment, feeling ill, a request to change \
+        today's plan), use [remember note for YYYY-MM-DD: ...] and keep any time they gave in 24-hour form; for a temporary limit use \
+        [remember note until YYYY-MM-DD: ...]. If they change their regular weekly training, add \
+        [schedule tennis|gym|run|other: mon tue wed thu fri HH:MM from YYYY-MM-DD] (days required; time and start date only if they gave them). \
+        To drop a session from their week, tell them to change it in Workouts, Edit plan. At most two such lines per reply. \
+        Never save one-off questions or today's numbers. The app hides these lines, saves them and rebuilds today's plan.
+        """
+    }
 
     /// The block added to the system prompt. Empty when there is nothing to remember yet.
     static func promptSection(memories: [Item], history: [ChatMessage], now: Date = Date()) -> String {
         var parts: [String] = []
 
-        let chosen = selectForPrompt(memories)
+        let chosen = selectForPrompt(memories.filter { !$0.isExpired(now: now) })
         if !chosen.isEmpty {
             var lines = ["COACH MEMORY (from earlier conversations; hold them to their goals, respect their notes):"]
             for item in chosen {
-                lines.append("- \(item.kind.label): \(item.text) (since \(shortDate(item.createdAt)))")
+                let scope = item.scopeLabel(now: now)
+                lines.append("- \(item.kind.label): \(item.text) (\(scope.isEmpty ? "since \(shortDate(item.createdAt))" : scope))")
             }
             parts.append(lines.joined(separator: "\n"))
         }
@@ -109,8 +154,9 @@ enum CoachMemoryEngine {
     // MARK: Reading the reply
 
     /// Splits a coach reply into the text to show and any `[remember goal|note: ...]` lines.
-    static func extract(from reply: String) -> (text: String, saves: [Item]) {
-        let pattern = #"\[\s*remember\s+(goal|note)\s*:\s*([^\]]+?)\s*\]"#
+    /// A note can be limited in time: `[remember note for 2026-11-16: ...]`, `until ...` or `from ...`.
+    static func extract(from reply: String, now: Date = Date(), calendar: Calendar = .current) -> (text: String, saves: [Item]) {
+        let pattern = #"\[\s*remember\s+(goal|note)(?:\s+(for|on|until|from)\s+(\d{4}-\d{2}-\d{2}))?\s*:\s*([^\]]+?)\s*\]"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
             return (reply, [])
         }
@@ -118,17 +164,31 @@ enum CoachMemoryEngine {
         var saves: [Item] = []
         for match in regex.matches(in: reply, range: NSRange(location: 0, length: ns.length)) {
             let kind = CoachMemoryKind(rawValue: ns.substring(with: match.range(at: 1)).lowercased()) ?? .note
-            let text = clip(ns.substring(with: match.range(at: 2)), maxMemoryLength)
-            if text.isNotEmpty { saves.append(Item(kind: kind, text: text)) }
+            let text = clip(ns.substring(with: match.range(at: 4)), maxMemoryLength)
+            guard text.isNotEmpty else { continue }
+            var item = Item(kind: kind, text: text, createdAt: now)
+            if match.range(at: 2).location != NSNotFound,
+               let date = parseDay(ns.substring(with: match.range(at: 3)), calendar: calendar) {
+                switch ns.substring(with: match.range(at: 2)).lowercased() {
+                case "until": item.validUntil = date
+                case "from":  item.validFrom = date
+                default:      item.validFrom = date; item.validUntil = date
+                }
+            }
+            saves.append(item)
         }
         let stripped = regex.stringByReplacingMatches(in: reply, range: NSRange(location: 0, length: ns.length), withTemplate: "")
-        let cleaned = stripped
+        return (tidy(stripped), saves)
+    }
+
+    /// Trims lines and collapses the gaps left where hidden tags were removed.
+    static func tidy(_ text: String) -> String {
+        text
             .components(separatedBy: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .joined(separator: "\n")
             .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        return (cleaned, saves)
     }
 
     /// True when `text` says the same as something already saved (case, punctuation and spacing ignored).
@@ -161,10 +221,22 @@ enum CoachMemoryEngine {
         return flat
     }
 
-    private static func shortDate(_ date: Date) -> String {
+    static func shortDate(_ date: Date) -> String {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "EEE d MMM"
         return f.string(from: date)
+    }
+
+    static func isoDay(_ date: Date, calendar: Calendar = .current) -> String {
+        let c = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+
+    /// "2026-11-18" → the start of that day in `calendar`'s time zone.
+    static func parseDay(_ text: String, calendar: Calendar = .current) -> Date? {
+        let parts = text.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3, (1...12).contains(parts[1]), (1...31).contains(parts[2]) else { return nil }
+        return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2]))
     }
 }
