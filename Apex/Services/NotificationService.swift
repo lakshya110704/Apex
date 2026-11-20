@@ -38,6 +38,24 @@ final class NotificationService {
         UNUserNotificationCenter.current().add(request)
     }
 
+    static let weeklyReviewIdentifier = "apex_weekly_review"
+
+    /// Every Sunday at 18:00: the week is nearly over and the review can be written. Replaces itself when called again.
+    func scheduleWeeklyReview() {
+        guard isAuthorized else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Your week in review"
+        content.body = "See what you did this week and what your coach would change. Open Progress, Weekly review."
+        content.sound = .default
+        var when = DateComponents()
+        when.weekday = 1
+        when.hour = WeeklyReviewEngine.notificationHour
+        when.minute = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: when, repeats: true)
+        UNUserNotificationCenter.current().add(
+            UNNotificationRequest(identifier: Self.weeklyReviewIdentifier, content: content, trigger: trigger))
+    }
+
     func cancelReminder() {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [Self.reminderIdentifier])
     }

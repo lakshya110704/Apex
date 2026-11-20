@@ -21,6 +21,7 @@ struct ApexApp: App {
             WorkoutScheduleEntry.self,
             CoachMessageRecord.self,
             CoachMemory.self,
+            WeeklyReview.self,
         ])
     }
 }
