@@ -147,10 +147,20 @@ final class WeeklyReviewTests: XCTestCase {
         XCTAssertEqual(change?.startsOn, cal.date(from: DateComponents(year: 2026, month: 11, day: 23)))
     }
 
-    func testPromptAsksForNextMondayStart() {
-        let next = WeeklyReviewEngine.nextWeekStart(after: weekStart, calendar: cal)
-        XCTAssertEqual(next, cal.date(from: DateComponents(year: 2026, month: 11, day: 23)))
-        XCTAssertTrue(WeeklyReviewEngine.systemPrompt(name: "Lakshya", nextWeek: next).contains("from 2026-11-23"))
+    func testSuggestionsNeverStartOnADayAlreadyGone() {
+        let monday23 = cal.date(from: DateComponents(year: 2026, month: 11, day: 23))!
+        let monday30 = cal.date(from: DateComponents(year: 2026, month: 11, day: 30))!
+        XCTAssertEqual(WeeklyReviewEngine.suggestionStart(now: date(11, 22, hour: 19), calendar: cal), monday23, "Sunday: tomorrow")
+        XCTAssertEqual(WeeklyReviewEngine.suggestionStart(now: date(11, 20), calendar: cal), monday23, "Friday, reviewing last week: next Monday, not this one")
+        XCTAssertEqual(WeeklyReviewEngine.suggestionStart(now: date(11, 23), calendar: cal), monday23, "Monday: today")
+        XCTAssertEqual(WeeklyReviewEngine.suggestionStart(now: date(11, 25), calendar: cal), monday30)
+        XCTAssertTrue(WeeklyReviewEngine.systemPrompt(name: "Lakshya", nextWeek: monday23).contains("from 2026-11-23"))
+
+        // Accepted a week late: starts today instead.
+        let late = PlanUpdateEngine.ScheduleChange(type: .gym, days: [4], startsOn: monday23)
+        XCTAssertEqual(WeeklyReviewEngine.startingNoEarlierThanToday(late, now: date(11, 26), calendar: cal).startsOn,
+                       cal.startOfDay(for: date(11, 26)))
+        XCTAssertEqual(WeeklyReviewEngine.startingNoEarlierThanToday(late, now: date(11, 21), calendar: cal).startsOn, monday23)
     }
 
     func testCoachSectionLastsTwoWeeksFromTheReviewedMonday() {

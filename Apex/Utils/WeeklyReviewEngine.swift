@@ -251,9 +251,23 @@ enum WeeklyReviewEngine {
         return lines.joined(separator: "\n")
     }
 
-    /// The Monday after the reviewed week, when suggested changes start.
-    static func nextWeekStart(after weekStart: Date, calendar: Calendar = .current) -> Date {
-        mondayCalendar(calendar).date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
+    /// When suggested changes start: today if it is Monday, otherwise next Monday.
+    /// Never a day already gone, so accepting a change never turns earlier days into missed sessions.
+    static func suggestionStart(now: Date = Date(), calendar: Calendar = .current) -> Date {
+        let cal = mondayCalendar(calendar)
+        let today = cal.startOfDay(for: now)
+        if cal.component(.weekday, from: now) == 2 { return today }
+        let thisWeek = cal.dateInterval(of: .weekOfYear, for: now)?.start ?? today
+        return cal.date(byAdding: .day, value: 7, to: thisWeek) ?? today
+    }
+
+    /// A suggestion accepted later than planned starts today instead of on a day already gone.
+    static func startingNoEarlierThanToday(_ change: PlanUpdateEngine.ScheduleChange, now: Date = Date(),
+                                           calendar: Calendar = .current) -> PlanUpdateEngine.ScheduleChange {
+        let today = calendar.startOfDay(for: now)
+        var adjusted = change
+        if let start = change.startsOn, calendar.startOfDay(for: start) < today { adjusted.startsOn = today }
+        return adjusted
     }
 
     static func systemPrompt(name: String, nextWeek: Date) -> String {

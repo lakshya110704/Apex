@@ -270,7 +270,7 @@ struct WeeklyReviewView: View {
             let raw = try await claude.weeklyReview(
                 data: WeeklyReviewEngine.dataBlock(s, health: health),
                 name: profiles.first?.name ?? "",
-                nextWeek: WeeklyReviewEngine.nextWeekStart(after: weekStart)
+                nextWeek: WeeklyReviewEngine.suggestionStart()
             )
             let (text, suggestions) = WeeklyReviewEngine.parse(raw)
             guard text.isNotEmpty else { throw ClaudeError.parseError }
@@ -286,7 +286,7 @@ struct WeeklyReviewView: View {
     }
 
     private func accept(_ change: PlanUpdateEngine.ScheduleChange, tag: String, review: WeeklyReview) {
-        WorkoutScheduleEntry.apply(change, to: scheduleEntries, in: context)
+        WorkoutScheduleEntry.apply(WeeklyReviewEngine.startingNoEarlierThanToday(change), to: scheduleEntries, in: context)
         review.accepted.append(tag)
         try? context.save()
     }
