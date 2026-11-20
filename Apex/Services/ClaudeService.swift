@@ -53,6 +53,8 @@ struct ApexContext {
     var githubActiveRepos: [String] = []
     // User request
     var userRequest: String = ""
+    // Plan only: your info and the plan being replaced, from PlanUpdateEngine.promptSection
+    var planInfo: String = ""
 }
 
 // MARK: - Response Models
@@ -263,6 +265,7 @@ final class ClaudeService {
         You are Apex Coach. Output ONLY a JSON array — no other text, no markdown, no backticks:
         [{"time":"HH:MM","category":"morning|workout|nutrition|focus|evening","activity":"one-line description"}]
         Max 10 items. Keep each activity concise (under 8 words). Base intensity on HRV, sleep score, and energy level. Factor in calendar events and scheduled meetings.
+        \(PlanUpdateEngine.planRules)
         """
 
         let contextText = buildContextMessage(context)
@@ -282,6 +285,7 @@ final class ClaudeService {
         - Sort by time, earliest first
         - No extra text before or after the lines
         - IMPORTANT: For workout activities, only suggest sports or exercises the athlete actually does: \(workoutHint). Never invent activities they have not done.
+        - \(PlanUpdateEngine.planRules)
 
         Example output:
         07:00 | morning | Wake up and cold shower
@@ -305,7 +309,7 @@ final class ClaudeService {
     func chat(messages: [ChatMessage], context: ApexContext, memory: String = "") async throws -> String {
         var systemPrompt = buildCoachSystemPrompt(context: context)
         if memory.isNotEmpty { systemPrompt += "\n\n" + memory }
-        systemPrompt += "\n\n" + CoachMemoryEngine.saveInstructions
+        systemPrompt += "\n\n" + CoachMemoryEngine.saveInstructions()
         let filtered = messages.filter { $0.role != .system }
 
         let aiMessages = filtered.map { AIMessage(role: $0.role == .user ? .user : .assistant, text: $0.content) }
@@ -410,6 +414,10 @@ final class ClaudeService {
         if ctx.githubCommitsToday > 0 {
             lines.append("\n── GITHUB ──")
             lines.append("\(ctx.githubCommitsToday) commits today in: \(ctx.githubActiveRepos.joined(separator: ", "))")
+        }
+
+        if !ctx.planInfo.isEmpty {
+            lines.append("\n" + ctx.planInfo)
         }
 
         if !ctx.userRequest.isEmpty {
