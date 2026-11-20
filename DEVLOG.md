@@ -351,6 +351,32 @@ Not seen on screen yet, and no real model has been asked to emit the new `[remem
 
 ---
 
+## Session 13 - Weekly coach review
+
+### What
+A look back at each week (Monday to Sunday): the numbers, a short review from the coach, and up to two schedule changes for next week that you can accept.
+
+### Why
+Coach memory, tennis trends and plan updates each look at one day or one chart. Nothing pulled the week together or asked "did you do what you planned, and what should change?"
+
+### How it works
+- **Which week** (`WeeklyReviewEngine.reviewWeekStart`): on Sunday, the week ending today; any other day, the last full week. Weeks always start on Monday.
+- **The numbers** are worked out on device, so they show without an AI key: scheduled sessions done against due (a session counts for the slot of its type on that day; today's slot counts only once done), missed sessions by day, unscheduled sessions, sessions and minutes against the week before, tennis match record and drills not practiced in three weeks, morning check-ins with average sleep score and energy, and your saved goals.
+- **The coach's review** is written when you tap "Write my review" (Rewrite replaces it). The request holds only those numbers, plus the Watch's 7-day sleep and HRV averages when the review covers the week ending today. The model may end with up to two `[schedule ...]` lines starting next Monday. They are hidden from the text and shown as suggestions; nothing changes until you tap Accept, which adds the session to your weekly schedule (the same code the coach uses from chat, `WorkoutScheduleEntry.apply`). A suggestion can only add a session or set its time, never remove one.
+- **Where**: Progress, Weekly review. Today shows a "Your week in review" banner on Sunday from 18:00 and on Monday until that week's review is written. A weekly reminder fires Sunday at 18:00 (only if notifications are allowed).
+- **Coach chat** gets the last review and the changes you accepted for two weeks from the reviewed Monday, so it can hold you to them.
+- New `WeeklyReview` model (week, text, suggestions, accepted).
+
+### Tests
+11 new unit tests: which week on Sunday, Monday, Wednesday and Saturday; when the banner shows; planned, done, missed and extra (with a slot that starts later in the week); today's session counted once done; a past week counting every day; tennis, stale drills, check-in averages and goals; the data block; parsing the reply (unknown types dropped, at most two, memory lines hidden); next Monday in the prompt; the coach section and when it stops; accepting a suggestion with SwiftData. 76 of 76 pass on the iOS 18.0 simulator (ad-hoc signed).
+
+Seen on the simulator with no data, dark and light: the Weekly review row on Progress and the Weekly Review screen (Mon 9 to Sun 15 Nov, empty numbers, Write my review button).
+
+### Not checked
+No review has been written by a real model yet, so the wording and whether models emit the `[schedule ...]` lines, and the Accept buttons, have not been seen. Not seen with real logged weeks. The Sunday reminder has not fired.
+
+---
+
 ## Upcoming / Ideas
 
 - **Drill ratings** - rate each drill in the tennis log so trends can show weakest drills
