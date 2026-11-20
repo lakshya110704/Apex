@@ -51,6 +51,11 @@ struct ApexProgressView: View {
                         }
                         .padding(.horizontal)
 
+                        if tennisCount > 0 {
+                            tennisTrendsLink
+                                .padding(.horizontal)
+                        }
+
                         statsSection
                             .padding(.horizontal)
 
@@ -169,6 +174,37 @@ struct ApexProgressView: View {
                     .foregroundStyle(ApexColor.textSecondary)
             }
         }
+    }
+
+    // MARK: - Tennis Trends
+
+    private var tennisTrendsLink: some View {
+        let tennis = workouts.filter { $0.type == .tennis }.map { TennisTrends.Entry($0) }
+        let thisWeek = TennisTrends.weeks(tennis, count: 1).first
+        let streak = TennisTrends.weekStreak(tennis)
+        return NavigationLink(destination: TennisTrendsView()) {
+            HStack(spacing: 14) {
+                Image(systemName: "figure.tennis")
+                    .font(.title2)
+                    .foregroundStyle(ApexColor.tennis)
+                    .frame(width: 36)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Tennis trends").apexLabel()
+                    Text("\(thisWeek?.sessions ?? 0) this week · \(streak) week streak")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(ApexColor.textPrimary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(ApexColor.textSecondary)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ApexColor.cardBg)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .buttonStyle(PressableStyle())
     }
 
     // MARK: - All-Time Stats
