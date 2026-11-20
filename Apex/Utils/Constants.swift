@@ -44,6 +44,9 @@ enum XPValues {
     static let logMeal          = 25
     static let sevenDayStreak   = 250
     static let thirtyDayStreak  = 1000
+    /// Each item of today's plan you check off, and the bonus for finishing all of them.
+    static let planItem         = 10
+    static let planComplete     = 50
 }
 
 enum LevelThresholds {
@@ -114,6 +117,7 @@ enum AchievementID: String, CaseIterable {
     case thousandXP        = "thousand_xp"
     case levelFive         = "level_five"
     case sleepWeek         = "sleep_week"
+    case planWeek          = "plan_week"
 
     var info: (name: String, description: String, icon: String, xpReward: Int) {
         switch self {
@@ -147,6 +151,8 @@ enum AchievementID: String, CaseIterable {
             return ("Elite", "Reach Level 5", "chevron.up.2", 200)
         case .sleepWeek:
             return ("Week of Mornings", "Complete 7 morning check-ins in a row", "moon.zzz.fill", 150)
+        case .planWeek:
+            return ("Plan Keeper", "Finish your whole plan 7 days in a row", "checklist.checked", 200)
         }
     }
 }

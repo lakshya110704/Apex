@@ -12,6 +12,9 @@ final class UserProfile {
     var claudeAPIKey: String
     var githubUsername: String
     var createdAt: Date
+    /// Days in a row you finished every item of the day's plan.
+    var planStreak: Int = 0
+    var lastPlanCompletedDate: Date?
 
     // Computed helpers (non-persisted)
     var level: Int { LevelThresholds.level(for: xpPoints) }

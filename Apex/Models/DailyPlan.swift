@@ -14,6 +14,8 @@ final class DailyPlan {
     var infoKeys: String = ""
     /// What the last automatic rebuild adjusted for, shown on the plan card.
     var adjustedFor: String = ""
+    /// Items you checked off (`PlanProgress.key`), in plan order. `xpEarned` is what they are worth.
+    var doneKeys: [String] = []
 
     init(date: Date = Date(), planText: String = "", userModifications: String = "", infoKeys: String = "", adjustedFor: String = "") {
         self.id = UUID()

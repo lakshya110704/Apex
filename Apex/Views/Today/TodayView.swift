@@ -29,6 +29,9 @@ struct TodayView: View {
     @State private var xpFloatOffset: CGFloat = 0
     @State private var xpFloatOpacity: Double = 0
     @State private var showingMemory = false
+    /// Drive check-off haptics.
+    @State private var planToggleCount = 0
+    @State private var planCompletedCount = 0
     /// Info an automatic rebuild already failed for, so a broken key is not retried in a loop.
     @State private var autoRebuildFailedKey: String?
     @State private var autoRebuildError: String?
@@ -153,7 +156,7 @@ struct TodayView: View {
             }
             .onChange(of: planInputKey) { _, _ in rebuildPlanIfInfoChanged() }
             .sheet(isPresented: $showingMemory) { CoachMemoryView() }
-            .onChange(of: gamification.xpAnimationAmount) { _, _ in
+            .onChange(of: gamification.xpAnimationTick) { _, _ in
                 animateXP()
             }
             .onChange(of: gamification.pendingAchievements.count) { _, count in
@@ -265,7 +268,7 @@ struct TodayView: View {
                         .foregroundStyle(ApexColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    planContent(blocks)
+                    planContent(blocks, plan: plan)
                 }
                 if plan.adjustedFor.isNotEmpty {
                     Label("Adjusted for: \(plan.adjustedFor)", systemImage: "arrow.triangle.2.circlepath")
@@ -300,50 +303,112 @@ struct TodayView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ApexColor.cardBg)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .sensoryFeedback(.selection, trigger: planToggleCount)
+        .sensoryFeedback(.success, trigger: planCompletedCount)
     }
 
     @ViewBuilder
-    private func planContent(_ blocks: [PlanBlock]) -> some View {
+    private func planContent(_ blocks: [PlanBlock], plan: DailyPlan) -> some View {
         let now = Calendar.current.dateComponents([.hour, .minute], from: Date())
         let nowMinutes = (now.hour ?? 0) * 60 + (now.minute ?? 0)
-        let nextIndex = PlanTiming.nextIndex(times: blocks.map(\.time), now: nowMinutes) ?? 0
-        let next = blocks[nextIndex]
+        let done = Set(plan.doneKeys)
+        let doneFlags = blocks.map { done.contains($0.key) }
+        let doneCount = doneFlags.filter { $0 }.count
+        let nextIndex = PlanProgress.nextIndex(times: blocks.map(\.time), doneFlags: doneFlags, now: nowMinutes)
 
-        VStack(alignment: .leading, spacing: 6) {
-            Text("NEXT UP")
-                .font(.caption2.weight(.heavy))
-                .tracking(1.2)
-                .foregroundStyle(next.accentColor)
-            Text(next.time)
-                .apexDisplay(52)
-                .foregroundStyle(ApexColor.textPrimary)
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Image(systemName: next.iconName).foregroundStyle(next.accentColor)
-                Text(next.activity)
-                    .font(.title3.weight(.bold))
+        if let nextIndex {
+            let next = blocks[nextIndex]
+            VStack(alignment: .leading, spacing: 6) {
+                Text("NEXT UP")
+                    .font(.caption2.weight(.heavy))
+                    .tracking(1.2)
+                    .foregroundStyle(next.accentColor)
+                HStack(alignment: .lastTextBaseline) {
+                    Text(next.time)
+                        .apexDisplay(52)
+                        .foregroundStyle(ApexColor.textPrimary)
+                    Spacer()
+                    Button { togglePlanItem(next, in: blocks, plan: plan) } label: {
+                        Label("Done", systemImage: "checkmark")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(ApexColor.onAccent)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 9)
+                            .background(ApexColor.accent)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel("Mark \(next.activity) done")
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: next.iconName).foregroundStyle(next.accentColor)
+                    Text(next.activity)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(ApexColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("ALL DONE")
+                    .font(.caption2.weight(.heavy))
+                    .tracking(1.2)
+                    .foregroundStyle(ApexColor.success)
+                Text("Plan complete")
+                    .apexDisplay(40)
                     .foregroundStyle(ApexColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text("+\(plan.xpEarned) XP today\(planStreakText.map { " · \($0)" } ?? "")")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ApexColor.textSecondary)
             }
         }
 
+        let scrollTarget = blocks[nextIndex ?? max(blocks.count - 1, 0)].id
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
                     ForEach(Array(blocks.enumerated()), id: \.element.id) { index, block in
-                        planChip(block, state: index < nextIndex ? .past : (index == nextIndex ? .next : .later))
-                            .id(block.id)
+                        Button { togglePlanItem(block, in: blocks, plan: plan) } label: {
+                            planChip(block, state: chipState(index: index, next: nextIndex, done: doneFlags[index]))
+                        }
+                        .buttonStyle(PressableStyle())
+                        .accessibilityLabel("\(block.time), \(block.activity)")
+                        .accessibilityValue(doneFlags[index] ? "Done" : "Not done")
+                        .accessibilityHint(doneFlags[index] ? "Tap to mark not done." : "Tap to mark done.")
+                        .id(block.id)
                     }
                 }
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
-            .onAppear { proxy.scrollTo(next.id, anchor: .leading) }
+            .onAppear { proxy.scrollTo(scrollTarget, anchor: .leading) }
         }
         .padding(.horizontal, -18)
         .contentMargins(.horizontal, 18, for: .scrollContent)
+
+        if nextIndex != nil {
+            HStack(spacing: 6) {
+                Image(systemName: "checklist.checked").foregroundStyle(ApexColor.success)
+                Text("\(doneCount) of \(blocks.count) done · +\(plan.xpEarned) XP\(planStreakText.map { " · \($0)" } ?? "")")
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(ApexColor.textSecondary)
+        }
     }
 
-    private enum ChipState { case past, next, later }
+    /// "3-day plan streak", or nil when there is none.
+    private var planStreakText: String? {
+        let streak = PlanProgress.liveStreak(current: profile?.planStreak ?? 0, lastCompleted: profile?.lastPlanCompletedDate)
+        return streak > 0 ? "\(streak)-day plan streak" : nil
+    }
+
+    private enum ChipState { case done, past, next, later }
+
+    private func chipState(index: Int, next: Int?, done: Bool) -> ChipState {
+        if done { return .done }
+        guard let next else { return .later }
+        return index == next ? .next : (index < next ? .past : .later)
+    }
 
     private func planChip(_ block: PlanBlock, state: ChipState) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -352,13 +417,14 @@ struct TodayView: View {
                     .font(.system(.caption, design: .monospaced).weight(.semibold))
                     .foregroundStyle(ApexColor.textSecondary)
                 Spacer()
-                Image(systemName: block.iconName)
+                Image(systemName: state == .done ? "checkmark.circle.fill" : block.iconName)
                     .font(.caption)
-                    .foregroundStyle(block.accentColor)
+                    .foregroundStyle(state == .done ? ApexColor.success : block.accentColor)
             }
             Text(block.activity)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ApexColor.textPrimary)
+                .foregroundStyle(state == .done ? ApexColor.textSecondary : ApexColor.textPrimary)
+                .strikethrough(state == .done, color: ApexColor.textSecondary)
                 .lineLimit(3)
                 .multilineTextAlignment(.leading)
             Spacer(minLength: 0)
@@ -371,7 +437,15 @@ struct TodayView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(state == .next ? block.accentColor.opacity(0.6) : Color.clear, lineWidth: 1.5)
         )
-        .opacity(state == .past ? 0.5 : 1)
+        .opacity(state == .past ? 0.6 : (state == .done ? 0.75 : 1))
+    }
+
+    private func togglePlanItem(_ block: PlanBlock, in blocks: [PlanBlock], plan: DailyPlan) {
+        guard let profile else { return }
+        let result = gamification.togglePlanItem(block.key, keys: blocks.map(\.key), plan: plan, profile: profile, context: context)
+        try? context.save()
+        planToggleCount += 1
+        if result.completedNow { planCompletedCount += 1 }
     }
 
     private var emptyPlan: some View {
@@ -635,6 +709,8 @@ struct TodayView: View {
         let time: String
         let category: String
         let activity: String
+
+        var key: String { PlanProgress.key(time: time, activity: activity) }
 
         var iconName: String {
             switch category {
@@ -923,9 +999,17 @@ struct TodayView: View {
             )
             let planText = try await claude.generateDailyPlan(context: ctx)
             let adjusted = automatic ? PlanUpdateEngine.adjustmentSummary(oldKey: previousKey, newKey: key) : ""
+            // Items you already checked off stay checked if the new plan still has them; XP is settled to match.
+            let carried = PlanProgress.carryOver(done: todayPlan?.doneKeys ?? [], previousXP: todayPlan?.xpEarned ?? 0,
+                                                 newKeys: parsePlanBlocks(from: planText).map(\.key))
             // Delete stale plans for today, then insert fresh
             for old in plans.filter({ $0.date.isToday }) { context.delete(old) }
-            context.insert(DailyPlan(date: Date(), planText: planText, infoKeys: key, adjustedFor: adjusted))
+            let fresh = DailyPlan(date: Date(), planText: planText, infoKeys: key, adjustedFor: adjusted)
+            fresh.doneKeys = carried.done
+            fresh.xpEarned = carried.planXP
+            fresh.isCompleted = carried.planXP > 0 && carried.done.count == Set(parsePlanBlocks(from: planText).map(\.key)).count
+            context.insert(fresh)
+            if let profile, carried.xpChange != 0 { gamification.settleXP(carried.xpChange, profile: profile) }
             try? context.save()
             autoRebuildFailedKey = nil
             autoRebuildError = nil

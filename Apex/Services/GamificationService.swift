@@ -5,7 +5,8 @@ import SwiftData
 final class GamificationService {
 
     var pendingAchievements: [Achievement] = []  // newly unlocked, shown as toasts
-    var xpAnimationAmount: Int = 0               // triggers floating XP animation
+    var xpAnimationAmount: Int = 0               // amount shown by the floating XP animation
+    var xpAnimationTick: Int = 0                 // bumped on every award, so the same amount twice still animates
 
     let notifications = NotificationService()
 
@@ -14,7 +15,10 @@ final class GamificationService {
     @discardableResult
     func awardXP(_ amount: Int, to profile: UserProfile) -> Int {
         profile.xpPoints += amount
-        xpAnimationAmount = amount
+        if amount > 0 {
+            xpAnimationAmount = amount
+            xpAnimationTick += 1
+        }
         return amount
     }
 
@@ -35,6 +39,33 @@ final class GamificationService {
         awardXP(Self.streakMilestoneXP(from: streakBefore, to: profile.workoutStreak), to: profile)
         checkAchievements(profile: profile, context: context)
         notifications.cancelReminder()
+    }
+
+    // MARK: - Plan check-offs
+
+    /// Checks a plan item off (or back on), settles its XP and, when it finishes the plan, the plan streak.
+    @discardableResult
+    func togglePlanItem(_ key: String, keys: [String], plan: DailyPlan, profile: UserProfile, context: ModelContext) -> PlanProgress.Toggle {
+        let result = PlanProgress.toggle(key, done: plan.doneKeys, keys: keys, planXP: plan.xpEarned)
+        plan.doneKeys = result.done
+        plan.xpEarned = result.planXP
+        plan.isCompleted = !keys.isEmpty && result.done.count == Set(keys).count
+        settleXP(result.xpChange, profile: profile)
+        if result.completedNow {
+            profile.planStreak = PlanProgress.streak(current: profile.planStreak, lastCompleted: profile.lastPlanCompletedDate)
+            profile.lastPlanCompletedDate = Date()
+            checkAchievements(profile: profile, context: context)
+        }
+        return result
+    }
+
+    /// Adds XP (animated) or takes back XP from an unchecked item, never below zero.
+    func settleXP(_ change: Int, profile: UserProfile) {
+        if change > 0 {
+            awardXP(change, to: profile)
+        } else if change < 0 {
+            profile.xpPoints = max(0, profile.xpPoints + change)
+        }
     }
 
     // MARK: - Meal XP
@@ -138,6 +169,7 @@ final class GamificationService {
             (.thousandXP,     profile.xpPoints >= 1000),
             (.levelFive,      profile.level >= 5),
             (.sleepWeek,      checkInRun >= 7),
+            (.planWeek,       profile.planStreak >= 7),
         ]
 
         for (id, condition) in checks {
