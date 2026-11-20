@@ -44,3 +44,22 @@ final class WorkoutScheduleEntry {
         return parts.joined(separator: " ")
     }
 }
+
+extension WorkoutScheduleEntry {
+    /// Adds the session on each day of `change`, or turns it on and sets its time and start date if it is already there.
+    /// Used for changes the coach makes from chat and for weekly review suggestions you accept. Never removes anything.
+    static func apply(_ change: PlanUpdateEngine.ScheduleChange, to entries: [WorkoutScheduleEntry], in context: ModelContext) {
+        for day in change.days {
+            if let existing = entries.first(where: { $0.dayOfWeek == day && $0.workoutType == change.type }) {
+                existing.isEnabled = true
+                existing.startMinutes = change.startMinutes ?? existing.startMinutes
+                existing.startsOn = change.startsOn
+                existing.addedByCoach = true
+            } else {
+                context.insert(WorkoutScheduleEntry(dayOfWeek: day, workoutType: change.type,
+                                                    startMinutes: change.startMinutes, startsOn: change.startsOn,
+                                                    addedByCoach: true))
+            }
+        }
+    }
+}

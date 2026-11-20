@@ -12,6 +12,7 @@ struct CoachView: View {
     @Query private var scheduleEntries: [WorkoutScheduleEntry]
     @Query(sort: \CoachMessageRecord.timestamp) private var chatHistory: [CoachMessageRecord]
     @Query(sort: \CoachMemory.createdAt, order: .reverse) private var memories: [CoachMemory]
+    @Query(sort: \WeeklyReview.weekStart, order: .reverse) private var reviews: [WeeklyReview]
 
     private var profile: UserProfile? { profiles.first }
     private var todayCheckIn: MorningCheckIn? { checkIns.first(where: { $0.date.isToday }) }
@@ -350,18 +351,7 @@ struct CoachView: View {
     private func applySchedule(_ changes: [PlanUpdateEngine.ScheduleChange]) -> [String] {
         guard !changes.isEmpty else { return [] }
         for change in changes {
-            for day in change.days {
-                if let existing = scheduleEntries.first(where: { $0.dayOfWeek == day && $0.workoutType == change.type }) {
-                    existing.isEnabled = true
-                    existing.startMinutes = change.startMinutes ?? existing.startMinutes
-                    existing.startsOn = change.startsOn
-                    existing.addedByCoach = true
-                } else {
-                    context.insert(WorkoutScheduleEntry(dayOfWeek: day, workoutType: change.type,
-                                                        startMinutes: change.startMinutes, startsOn: change.startsOn,
-                                                        addedByCoach: true))
-                }
-            }
+            WorkoutScheduleEntry.apply(change, to: scheduleEntries, in: context)
         }
         try? context.save()
         return changes.map { "schedule: " + PlanUpdateEngine.describe($0) }
@@ -542,7 +532,11 @@ struct CoachView: View {
 
         // Earlier days go in as a recap; only today's (saved) turns are sent as chat turns.
         let earlier = chatHistory.map(\.chatMessage).filter { !$0.timestamp.isToday }
-        let memoryBlock = CoachMemoryEngine.promptSection(memories: memories.map(\.item), history: earlier)
+        var memoryBlock = CoachMemoryEngine.promptSection(memories: memories.map(\.item), history: earlier)
+        if let review = reviews.first {
+            let section = WeeklyReviewEngine.coachSection(weekStart: review.weekStart, text: review.text, accepted: review.accepted)
+            if section.isNotEmpty { memoryBlock += (memoryBlock.isEmpty ? "" : "\n\n") + section }
+        }
         let turns = CoachMemoryEngine.currentSession(messages.filter { !offlineIDs.contains($0.id) })
 
         Task {

@@ -11,6 +11,7 @@ struct TodayView: View {
     @Query(sort: \MorningCheckIn.date, order: .reverse) private var checkIns: [MorningCheckIn]
     @Query(sort: \CoachMemory.createdAt, order: .reverse) private var memories: [CoachMemory]
     @Query private var scheduleEntries: [WorkoutScheduleEntry]
+    @Query(sort: \WeeklyReview.weekStart, order: .reverse) private var reviews: [WeeklyReview]
 
     var healthKit: HealthKitService
     var claude: ClaudeService
@@ -74,6 +75,11 @@ struct TodayView: View {
                         // The day at a glance: what is next, then what you can do about it
                         planHero
                             .padding(.horizontal)
+
+                        if showWeeklyReviewBanner {
+                            weeklyReviewBanner
+                                .padding(.horizontal)
+                        }
 
                         quickActions
                             .padding(.horizontal)
@@ -394,6 +400,42 @@ struct TodayView: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Weekly review
+
+    /// Sunday evening and Monday, until that week's review has been written.
+    private var showWeeklyReviewBanner: Bool {
+        guard WeeklyReviewEngine.isReviewTime() else { return false }
+        let weekStart = WeeklyReviewEngine.reviewWeekStart()
+        return !reviews.contains { Calendar.current.isDate($0.weekStart, inSameDayAs: weekStart) }
+    }
+
+    private var weeklyReviewBanner: some View {
+        NavigationLink(destination: WeeklyReviewView(claude: claude, healthKit: healthKit)) {
+            HStack(spacing: 14) {
+                Image(systemName: "calendar.badge.checkmark")
+                    .font(.title2)
+                    .foregroundStyle(ApexColor.accent)
+                    .frame(width: 36)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Your week in review").apexLabel()
+                    Text("See how the week went and what to change")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(ApexColor.textPrimary)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(ApexColor.textSecondary)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ApexColor.accent.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .buttonStyle(PressableStyle())
     }
 
     // MARK: - Quick actions
