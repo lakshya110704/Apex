@@ -348,6 +348,22 @@ struct TodayView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+        } else if doneCount < blocks.count {
+            // Only earlier items are still open; Next up never goes back to them.
+            let open = blocks.count - doneCount
+            VStack(alignment: .leading, spacing: 6) {
+                Text("NOTHING LEFT AHEAD")
+                    .font(.caption2.weight(.heavy))
+                    .tracking(1.2)
+                    .foregroundStyle(ApexColor.textSecondary)
+                Text("That's the day")
+                    .apexDisplay(40)
+                    .foregroundStyle(ApexColor.textPrimary)
+                Text("\(open) earlier item\(open == 1 ? "" : "s") not checked off. Tap one below if you did it.")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ApexColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         } else {
             VStack(alignment: .leading, spacing: 6) {
                 Text("ALL DONE")
@@ -386,7 +402,7 @@ struct TodayView: View {
         .padding(.horizontal, -18)
         .contentMargins(.horizontal, 18, for: .scrollContent)
 
-        if nextIndex != nil {
+        if doneCount < blocks.count {
             HStack(spacing: 6) {
                 Image(systemName: "checklist.checked").foregroundStyle(ApexColor.success)
                 Text("\(doneCount) of \(blocks.count) done · +\(plan.xpEarned) XP\(planStreakText.map { " · \($0)" } ?? "")")
@@ -406,7 +422,7 @@ struct TodayView: View {
 
     private func chipState(index: Int, next: Int?, done: Bool) -> ChipState {
         if done { return .done }
-        guard let next else { return .later }
+        guard let next else { return .past }
         return index == next ? .next : (index < next ? .past : .later)
     }
 

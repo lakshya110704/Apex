@@ -49,14 +49,13 @@ enum PlanProgress {
         return (kept, xp, xp - previousXP)
     }
 
-    /// Index of the item to show as next: the first not done at or after the time-based next item,
-    /// otherwise the first not done at all. Nil when everything is done.
+    /// Index of the item to show as next: the first not done at or after the time-based next item.
+    /// It only moves forward: earlier items left open stay in the strip but never become Next up again.
+    /// Nil when nothing is left ahead (everything done, or only earlier items still open).
     static func nextIndex(times: [String], doneFlags: [Bool], now: Int) -> Int? {
-        guard times.count == doneFlags.count else { return nil }
-        let open = times.indices.filter { !doneFlags[$0] }
-        guard !open.isEmpty else { return nil }
+        guard times.count == doneFlags.count, !times.isEmpty else { return nil }
         let start = PlanTiming.nextIndex(times: times, now: now) ?? 0
-        return open.first(where: { $0 >= start }) ?? open.first
+        return times.indices.first { $0 >= start && !doneFlags[$0] }
     }
 
     /// Plan streak after finishing today's plan: +1 if yesterday's was finished, 1 after a gap, unchanged if already counted today.

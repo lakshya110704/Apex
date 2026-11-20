@@ -64,7 +64,9 @@ final class PlanProgressTests: XCTestCase {
         let times = ["07:00", "12:00", "17:00"]
         XCTAssertEqual(PlanProgress.nextIndex(times: times, doneFlags: [false, false, false], now: 11 * 60), 1)
         XCTAssertEqual(PlanProgress.nextIndex(times: times, doneFlags: [false, true, false], now: 11 * 60), 2)
-        XCTAssertEqual(PlanProgress.nextIndex(times: times, doneFlags: [false, true, true], now: 11 * 60), 0, "then an earlier one still open")
+        XCTAssertNil(PlanProgress.nextIndex(times: times, doneFlags: [false, true, true], now: 11 * 60), "never jumps back to an earlier open item")
+        XCTAssertEqual(PlanProgress.nextIndex(times: times, doneFlags: [false, false, false], now: 23 * 60), 2, "late at night: the last item")
+        XCTAssertNil(PlanProgress.nextIndex(times: times, doneFlags: [false, false, true], now: 23 * 60))
         XCTAssertNil(PlanProgress.nextIndex(times: times, doneFlags: [true, true, true], now: 11 * 60))
     }
 
