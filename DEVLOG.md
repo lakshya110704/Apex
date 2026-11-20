@@ -377,6 +377,29 @@ No review has been written by a real model yet, so the wording and whether model
 
 ---
 
+## Session 14 - Check off plan items
+
+### What
+Tap an item of Today's plan to mark it done. Each item is worth 10 XP; finishing all of them adds 50 and counts toward a plan streak.
+
+### Why
+Finishing the plan earned nothing (a known gap since Session 9). The plan stays read-only: checking an item off marks what you did, it does not change what Apex planned.
+
+### How it works
+- `PlanProgress` (pure logic): an item's key is its time plus its text with case and punctuation ignored. XP is 10 per done item plus 50 when every item is done. Unchecking gives the XP back (bonus included), so tapping on and off earns nothing.
+- Tap a chip, or Done on Next up. Done chips show a check and strikethrough. Next up skips done items (later ones first, then any earlier one still open); when all are done the card shows Plan complete with the day's XP and streak. A line under the chips shows "3 of 8 done · +30 XP · 2-day plan streak". Haptics on each tap and on finishing.
+- An automatic rebuild or Refresh keeps items checked when the new plan still has them (earlier items are kept by the rebuild rules) and settles XP up or down to match.
+- `DailyPlan.doneKeys`; `UserProfile.planStreak` and `lastPlanCompletedDate`. The streak grows once per day and is shown as lapsed after a full day without a finished plan. New achievement Plan Keeper: finish the plan 7 days in a row.
+- The floating XP animation now runs on every award, not only when the amount differs from the last one.
+
+### Tests
+9 new unit tests: keys, XP with the bonus, on and off nets zero, the bonus only on the last item and given back, unknown keys, carrying over on a rebuild, Next up skipping done items, the plan streak, and toggling through `GamificationService` with SwiftData. 85 of 85 pass on the iOS 18.0 simulator (ad-hoc signed).
+
+### Not checked
+Not seen on screen: the simulator has no plan and its saved Gemini key is rejected, so no plan could be generated.
+
+---
+
 ## Upcoming / Ideas
 
 - **Drill ratings** - rate each drill in the tennis log so trends can show weakest drills
