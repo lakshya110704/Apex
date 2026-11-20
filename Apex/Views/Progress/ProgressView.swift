@@ -6,6 +6,10 @@ struct ApexProgressView: View {
     @Query(sort: \WorkoutSession.date, order: .reverse) private var workouts: [WorkoutSession]
     @Query(sort: \MealEntry.date, order: .reverse) private var meals: [MealEntry]
     @Query private var achievements: [Achievement]
+    @Query(sort: \WeeklyReview.weekStart, order: .reverse) private var reviews: [WeeklyReview]
+
+    var claude: ClaudeService
+    var healthKit: HealthKitService
 
     private var profile: UserProfile? { profiles.first }
     private var unlockedCount: Int { achievements.filter(\.isUnlocked).count }
@@ -21,6 +25,9 @@ struct ApexProgressView: View {
                             .padding(.horizontal)
 
                         consistencyCard
+                            .padding(.horizontal)
+
+                        weeklyReviewLink
                             .padding(.horizontal)
 
                         LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
@@ -174,6 +181,37 @@ struct ApexProgressView: View {
                     .foregroundStyle(ApexColor.textSecondary)
             }
         }
+    }
+
+    // MARK: - Weekly Review
+
+    private var weeklyReviewLink: some View {
+        let weekStart = WeeklyReviewEngine.reviewWeekStart()
+        let written = reviews.contains { Calendar.current.isDate($0.weekStart, inSameDayAs: weekStart) }
+        let thisWeek = WeeklyReviewEngine.mondayCalendar().isDate(weekStart, equalTo: Date(), toGranularity: .weekOfYear)
+        return NavigationLink(destination: WeeklyReviewView(claude: claude, healthKit: healthKit)) {
+            HStack(spacing: 14) {
+                Image(systemName: "calendar.badge.checkmark")
+                    .font(.title2)
+                    .foregroundStyle(ApexColor.accent)
+                    .frame(width: 36)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Weekly review").apexLabel()
+                    Text("\(thisWeek ? "This week" : "Last week") · \(written ? "coach's review ready" : "see how it went")")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(ApexColor.textPrimary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(ApexColor.textSecondary)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ApexColor.cardBg)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .buttonStyle(PressableStyle())
     }
 
     // MARK: - Tennis Trends

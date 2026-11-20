@@ -303,6 +303,17 @@ final class ClaudeService {
         ))
     }
 
+    // MARK: - Weekly review
+
+    /// `data` is `WeeklyReviewEngine.dataBlock`; the reply is read with `WeeklyReviewEngine.parse`.
+    func weeklyReview(data: String, name: String, nextWeek: Date) async throws -> String {
+        try await send(AIRequestSpec(
+            system: WeeklyReviewEngine.systemPrompt(name: name, nextWeek: nextWeek),
+            messages: [AIMessage(role: .user, text: data)],
+            maxTokens: 500
+        ))
+    }
+
     // MARK: - Chat
 
     /// `memory` is the block from `CoachMemoryEngine.promptSection`: saved goals and notes plus a recap of earlier chats.

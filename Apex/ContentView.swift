@@ -40,7 +40,7 @@ struct ContentView: View {
                 .tabItem { Label("Nutrition", systemImage: "fork.knife") }
                 .tag(2)
 
-            ApexProgressView()
+            ApexProgressView(claude: claude, healthKit: healthKit)
                 .tabItem { Label("Progress", systemImage: "chart.bar.fill") }
                 .tag(3)
 
@@ -93,6 +93,7 @@ struct ContentView: View {
         }
         .task {
             await gamification.notifications.requestAuthorization()
+            gamification.notifications.scheduleWeeklyReview()
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .background, let profile = profiles.first else { return }
