@@ -102,6 +102,8 @@ extension Color {
 
 extension String {
     var isNotEmpty: Bool { !isEmpty }
+    /// "today only" → "Today only"
+    var capitalizedFirst: String { prefix(1).uppercased() + dropFirst() }
 }
 
 // MARK: - Color interpolation

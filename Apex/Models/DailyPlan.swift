@@ -10,8 +10,12 @@ final class DailyPlan {
     var isCompleted: Bool
     var xpEarned: Int
     var generatedAt: Date
+    /// The info (goals, notes, schedule) this plan was built from, one line each. A change triggers a rebuild.
+    var infoKeys: String = ""
+    /// What the last automatic rebuild adjusted for, shown on the plan card.
+    var adjustedFor: String = ""
 
-    init(date: Date = Date(), planText: String = "", userModifications: String = "") {
+    init(date: Date = Date(), planText: String = "", userModifications: String = "", infoKeys: String = "", adjustedFor: String = "") {
         self.id = UUID()
         self.date = date
         self.planText = planText
@@ -19,6 +23,8 @@ final class DailyPlan {
         self.isCompleted = false
         self.xpEarned = 0
         self.generatedAt = Date()
+        self.infoKeys = infoKeys
+        self.adjustedFor = adjustedFor
     }
 }
 

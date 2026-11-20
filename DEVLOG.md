@@ -327,6 +327,30 @@ Seen on the simulator in dark and light with 10 temporary sample sessions (remov
 
 ---
 
+## Session 12 - Plan updates from your info
+
+### What
+Today's plan stays read-only, but it now follows what you tell Apex about yourself. Goals, notes (injuries, one-off appointments) and your weekly schedule feed the plan, and the plan rebuilds itself when that info changes.
+
+### Why
+The plan never saw Coach Memory or the weekly schedule, and chat about the plan was saved onto it but never read back. Telling the app "furniture shopping at 13:30 today" or "tennis weekdays at 11:30 from Wednesday" changed nothing.
+
+### How it works
+- **What the plan is built from** (`PlanUpdateEngine.inputLines`): goals and notes that apply today plus today's scheduled sessions (with time), one line each. They go into the plan request as an "ABOUT THE ATHLETE" section, with a rule to put timed commitments at their time and respect injuries.
+- **Rebuild on change** - `DailyPlan.infoKeys` stores the lines a plan was built from. When Today appears, or the info changes, and they differ, the plan is rebuilt automatically. The request includes the previous plan and the time now so earlier items stay the same. The card shows "Adjusted for: ..." (what is new, or what was removed). A failed rebuild keeps the old plan on screen, says why, and isn't retried for the same info. No plan yet means no automatic call; you still tap Generate.
+- **Dated notes** - `CoachMemory.validFrom/validUntil`. The coach writes `[remember note for YYYY-MM-DD: ...]` (one day), `until` or `from`. The prompt now tells it today's date. One-day notes disappear on their own the next day. In the Coach Memory sheet, notes have an "Only today" switch.
+- **Schedule from chat** - `WorkoutScheduleEntry` gets an optional `startMinutes`, `startsOn` and `addedByCoach`. The coach writes `[schedule tennis: mon tue wed thu fri 11:30 from 2026-11-18]`. The app updates or adds those days and shows a chip, and sessions starting later don't count until their start date (week strip, missed count, plan). The sessions appear under "Weekly schedule from chat" in Coach Memory, where you can swipe to remove them. To drop a session, the coach tells you to use Edit plan.
+- **"Something changed? Tell Apex"** on the plan card opens Coach Memory.
+- Removed the old unused `userModifications` append in the coach chat.
+
+### Tests
+10 new unit tests: dated note tags, one-day notes active and then expired (and left out of the prompt), schedule tag parsing and hiding, day forms (weekdays, ranges, wrap, names), entries waiting for their start date, stable input lines and the prompt section, when a rebuild runs, the "Adjusted for" text, the date in the save instructions, and a SwiftData round trip of the new fields. 58 of 58 pass on the iOS 18.0 simulator (ad-hoc signed).
+
+### Not checked
+Not seen on screen yet, and no real model has been asked to emit the new `[remember note for ...]` and `[schedule ...]` lines. If a model writes them differently, they show in the reply and aren't saved.
+
+---
+
 ## Upcoming / Ideas
 
 - **Drill ratings** - rate each drill in the tennis log so trends can show weakest drills
