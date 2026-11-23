@@ -45,7 +45,7 @@ You pick one provider in Settings and bring your own key. Apex has no server of 
 
 | Provider | Default model | Photos | Notes |
 |---|---|---|---|
-| Google Gemini | `gemini-2.5-flash` | yes | key from Google AI Studio |
+| Google Gemini | `gemini-3.6-flash` | yes | key from Google AI Studio |
 | OpenAI | `gpt-4o-mini` | yes | chat completions API |
 | Anthropic Claude | `claude-haiku-5-5` | yes | messages API |
 | Local (Ollama) | `llama3.2` | no | your own server, nothing leaves your network |

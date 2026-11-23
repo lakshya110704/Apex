@@ -91,7 +91,7 @@ enum AIProvider: String, CaseIterable, Identifiable {
 
     var defaultModel: String {
         switch self {
-        case .gemini:    return "gemini-2.5-flash"
+        case .gemini:    return "gemini-3.6-flash"
         case .openai:    return "gpt-4o-mini"
         case .anthropic: return "claude-haiku-5-5"
         case .local:     return "llama3.2"
