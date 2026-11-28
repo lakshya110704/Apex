@@ -48,6 +48,21 @@ struct AIMessage {
     let text: String
 }
 
+struct AIReply: Equatable {
+    var text: String
+    /// The provider stopped at the output token limit, so the text may end mid-sentence.
+    var truncated: Bool
+
+    /// The text up to its last finished sentence (or closed save line), for a reply that was cut off.
+    /// Unchanged when that would throw away most of it.
+    static func trimmedToLastSentence(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let last = trimmed.lastIndex(where: { ".!?]".contains($0) }) else { return trimmed }
+        let kept = String(trimmed[...last])
+        return kept.count >= trimmed.count / 3 ? kept : trimmed
+    }
+}
+
 struct AIRequestSpec {
     var system: String
     var messages: [AIMessage]
@@ -197,22 +212,40 @@ enum AIProvider: String, CaseIterable, Identifiable {
     // MARK: Parse the reply
 
     func parseReply(_ data: Data) throws -> String {
+        try parseFullReply(data).text
+    }
+
+    /// The reply text, and whether the provider stopped because it hit the output token limit.
+    func parseFullReply(_ data: Data) throws -> AIReply {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw ClaudeError.parseError }
         let text: String?
+        let stopReason: String?
         switch self {
         case .gemini:
-            let parts = ((json["candidates"] as? [[String: Any]])?.first?["content"] as? [String: Any])?["parts"] as? [[String: Any]]
-            text = parts?.compactMap { $0["text"] as? String }.joined()
+            let candidate = (json["candidates"] as? [[String: Any]])?.first
+            let parts = (candidate?["content"] as? [String: Any])?["parts"] as? [[String: Any]]
+            // Gemini's thinking models mark their thought parts; never show those.
+            text = parts?.filter { $0["thought"] as? Bool != true }.compactMap { $0["text"] as? String }.joined()
+            stopReason = candidate?["finishReason"] as? String
         case .openai:
-            text = (((json["choices"] as? [[String: Any]])?.first?["message"]) as? [String: Any])?["content"] as? String
+            let choice = (json["choices"] as? [[String: Any]])?.first
+            text = (choice?["message"] as? [String: Any])?["content"] as? String
+            stopReason = choice?["finish_reason"] as? String
         case .anthropic:
             let blocks = json["content"] as? [[String: Any]]
             text = blocks?.filter { $0["type"] as? String == "text" }.compactMap { $0["text"] as? String }.joined()
+            stopReason = json["stop_reason"] as? String
         case .local:
             text = (json["message"] as? [String: Any])?["content"] as? String
+            stopReason = json["done_reason"] as? String
         }
-        guard let reply = text, !reply.isEmpty else { throw ClaudeError.parseError }
-        return reply
+        let truncated = ["MAX_TOKENS", "length", "max_tokens"].contains(stopReason ?? "")
+        guard let reply = text, !reply.isEmpty else {
+            // A reasoning model can spend the whole budget thinking; report that as a cut-off reply so it is retried.
+            if truncated { return AIReply(text: "", truncated: true) }
+            throw ClaudeError.parseError
+        }
+        return AIReply(text: reply, truncated: truncated)
     }
 
     // MARK: Per-provider message shapes

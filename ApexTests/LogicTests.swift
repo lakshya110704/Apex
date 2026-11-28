@@ -840,4 +840,62 @@ final class LogicTests: XCTestCase {
         XCTAssertEqual(plan.infoKeys, "Scheduled: Tennis at 11:30")
         XCTAssertEqual(plan.adjustedFor, "Tennis at 11:30")
     }
+
+    // MARK: - Real-model reply polish
+
+    func testCutOffRepliesAreFlaggedPerProvider() throws {
+        func data(_ s: String) -> Data { Data(s.utf8) }
+        XCTAssertTrue(try AIProvider.gemini.parseFullReply(data(#"{"candidates":[{"content":{"parts":[{"text":"Good wee"}]},"finishReason":"MAX_TOKENS"}]}"#)).truncated)
+        XCTAssertFalse(try AIProvider.gemini.parseFullReply(data(#"{"candidates":[{"content":{"parts":[{"text":"Done."}]},"finishReason":"STOP"}]}"#)).truncated)
+        XCTAssertTrue(try AIProvider.openai.parseFullReply(data(#"{"choices":[{"message":{"content":"Good"},"finish_reason":"length"}]}"#)).truncated)
+        XCTAssertTrue(try AIProvider.anthropic.parseFullReply(data(#"{"content":[{"type":"text","text":"Good"}],"stop_reason":"max_tokens"}"#)).truncated)
+        XCTAssertTrue(try AIProvider.local.parseFullReply(data(#"{"message":{"content":"Good"},"done_reason":"length"}"#)).truncated)
+        // All of the budget spent thinking: an empty but cut-off reply, so it can be retried instead of failing.
+        XCTAssertEqual(try AIProvider.gemini.parseFullReply(data(#"{"candidates":[{"content":{"parts":[]},"finishReason":"MAX_TOKENS"}]}"#)), AIReply(text: "", truncated: true))
+        // Gemini thought parts are never shown.
+        XCTAssertEqual(try AIProvider.gemini.parseReply(data(#"{"candidates":[{"content":{"parts":[{"text":"plan...","thought":true},{"text":"Hi."}]}}]}"#)), "Hi.")
+    }
+
+    func testCutOffReplyEndsOnLastWholeSentence() {
+        XCTAssertEqual(AIReply.trimmedToLastSentence("Great week, 6 of 6 sessions. Next week add a long run on Sat"), "Great week, 6 of 6 sessions.")
+        XCTAssertEqual(AIReply.trimmedToLastSentence("Do it.\n[schedule run: sat 08:00]\nAlso"), "Do it.\n[schedule run: sat 08:00]")
+        XCTAssertEqual(AIReply.trimmedToLastSentence("No sentence ends here"), "No sentence ends here")
+        XCTAssertEqual(AIReply.trimmedToLastSentence("Ok. Then a very long thought that goes on and on and on without end"),
+                       "Ok. Then a very long thought that goes on and on and on without end", "keeps the text when trimming would drop most of it")
+    }
+
+    func testCoachMarkdownRendersBoldAndBlocks() {
+        XCTAssertEqual(String(CoachMarkdown.attributed("You have **34 g** protein left.").characters), "You have 34 g protein left.")
+        let bold = CoachMarkdown.attributed("**34 g**").runs.first?.inlinePresentationIntent
+        XCTAssertEqual(bold, .stronglyEmphasized)
+        XCTAssertEqual(CoachMarkdown.normalizedBlocks("## This week\n- Gym 3x\n* Tennis 2x\nPlain"), "**This week**\n• Gym 3x\n• Tennis 2x\nPlain")
+        XCTAssertEqual(String(CoachMarkdown.attributed("Unclosed **bold").characters), "Unclosed **bold")
+    }
+
+    func testSaveLinesInRealModelShapes() {
+        let reply = """
+        Noted, we'll work around the knee.
+
+        **[remember note: Left knee sore, no jumping]**
+        `[Remember Goals - Run a sub-25 5k]`
+        """
+        let (text, saves) = CoachMemoryEngine.extract(from: reply)
+        XCTAssertEqual(text, "Noted, we'll work around the knee.")
+        XCTAssertEqual(saves.map(\.kind), [.note, .goal])
+        XCTAssertEqual(saves.map(\.text), ["Left knee sore, no jumping", "Run a sub-25 5k"])
+
+        let dated = CoachMemoryEngine.extract(from: "Sure. [remember note for 2026-11-28 — Dentist at 15:00]").saves
+        XCTAssertEqual(dated.first?.text, "Dentist at 15:00")
+        XCTAssertEqual(dated.first?.validUntil, ymd("2026-11-28"))
+    }
+
+    func testScheduleLinesInRealModelShapes() {
+        let (text, changes) = PlanUpdateEngine.extractScheduleChanges(from: "Locked in.\n**[schedule Tennis - Mon, Wed 6:30 pm from 2026-11-30]**")
+        XCTAssertEqual(text, "Locked in.")
+        XCTAssertEqual(changes, [.init(type: .tennis, days: [2, 4], startMinutes: 18 * 60 + 30, startsOn: ymd("2026-11-30"))])
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .gym, "tue 7am")?.startMinutes, 7 * 60)
+        XCTAssertEqual(PlanUpdateEngine.parseSchedule(type: .gym, "tue 12:15am")?.startMinutes, 15)
+        XCTAssertNil(PlanUpdateEngine.clockMinutes("13pm"))
+        XCTAssertEqual(WeeklyReviewEngine.parse("Good.\n[schedule gym — sat 09:00 from 2026-11-30]").suggestions.count, 1)
+    }
 }

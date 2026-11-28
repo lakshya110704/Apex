@@ -156,7 +156,8 @@ enum CoachMemoryEngine {
     /// Splits a coach reply into the text to show and any `[remember goal|note: ...]` lines.
     /// A note can be limited in time: `[remember note for 2026-11-16: ...]`, `until ...` or `from ...`.
     static func extract(from reply: String, now: Date = Date(), calendar: Calendar = .current) -> (text: String, saves: [Item]) {
-        let pattern = #"\[\s*remember\s+(goal|note)(?:\s+(for|on|until|from)\s+(\d{4}-\d{2}-\d{2}))?\s*:\s*([^\]]+?)\s*\]"#
+        // Lenient about what real models write: "goals", a dash instead of a colon, markdown around the line.
+        let pattern = #"(?:\*\*|__|[*_`])?\[\s*remember\s+(goal|note)s?(?:\s+(for|on|until|from)\s+(\d{4}-\d{2}-\d{2}))?\s*[:\-–—]\s*([^\]]+?)\s*\](?:\*\*|__|[*_`])?"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
             return (reply, [])
         }

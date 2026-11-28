@@ -102,7 +102,7 @@ enum PlanUpdateEngine {
 
     /// Splits a coach reply into the text to show and any `[schedule tennis: mon tue wed thu fri 11:30 from 2026-11-18]` lines.
     static func extractScheduleChanges(from reply: String, calendar: Calendar = .current) -> (text: String, changes: [ScheduleChange]) {
-        let pattern = #"\[\s*schedule\s+([a-z]+)\s*:\s*([^\]]+?)\s*\]"#
+        let pattern = #"(?:\*\*|__|[*_`])?\[\s*schedule\s+([a-z]+)\s*[:\-–—]\s*([^\]]+?)\s*\](?:\*\*|__|[*_`])?"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return (reply, []) }
         let ns = reply as NSString
         var changes: [ScheduleChange] = []
@@ -122,6 +122,7 @@ enum PlanUpdateEngine {
         let tokens = body.lowercased()
             .replacingOccurrences(of: ",", with: " ")
             .replacingOccurrences(of: "–", with: "-")
+            .replacingOccurrences(of: #"(\d)\s+(am|pm)\b"#, with: "$1$2", options: .regularExpression)
             .split(separator: " ").map(String.init)
         var days: [Int] = []
         var start: Int?
@@ -134,7 +135,7 @@ enum PlanUpdateEngine {
                 index += 2
                 continue
             }
-            if let minutes = PlanTiming.minutes(token) {
+            if let minutes = PlanTiming.minutes(token) ?? clockMinutes(token) {
                 start = minutes
             } else if let group = dayGroups[token] {
                 days += group
@@ -188,6 +189,18 @@ enum PlanUpdateEngine {
         "weekends": [7, 1], "weekend": [7, 1],
         "daily": [2, 3, 4, 5, 6, 7, 1], "everyday": [2, 3, 4, 5, 6, 7, 1],
     ]
+
+    /// "11:30am", "1:30pm", "6pm" as minutes since midnight. Plain 24-hour times go through `PlanTiming.minutes`.
+    static func clockMinutes(_ token: String) -> Int? {
+        let t = token.trimmingCharacters(in: CharacterSet(charactersIn: ".,"))
+        guard t.hasSuffix("am") || t.hasSuffix("pm") else { return nil }
+        let isPM = t.hasSuffix("pm")
+        let parts = t.dropLast(2).split(separator: ":")
+        guard (1...2).contains(parts.count), let h = Int(parts[0]), (1...12).contains(h) else { return nil }
+        let m = parts.count == 2 ? Int(parts[1]) : 0
+        guard let m, (0..<60).contains(m) else { return nil }
+        return ((h % 12) + (isPM ? 12 : 0)) * 60 + m
+    }
 
     static func weekday(_ token: String) -> Int? {
         let names: [(String, Int)] = [("sun", 1), ("mon", 2), ("tue", 3), ("wed", 4), ("thu", 5), ("fri", 6), ("sat", 7)]

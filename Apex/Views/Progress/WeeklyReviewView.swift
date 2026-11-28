@@ -176,7 +176,7 @@ struct WeeklyReviewView: View {
                         .foregroundStyle(ApexColor.textSecondary)
                 }
             } else if let review {
-                Text(review.text)
+                Text(CoachMarkdown.attributed(review.text))
                     .font(.body)
                     .foregroundStyle(ApexColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
