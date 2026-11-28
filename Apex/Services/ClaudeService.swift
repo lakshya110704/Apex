@@ -310,7 +310,7 @@ final class ClaudeService {
         try await send(AIRequestSpec(
             system: WeeklyReviewEngine.systemPrompt(name: name, nextWeek: nextWeek),
             messages: [AIMessage(role: .user, text: data)],
-            maxTokens: 500
+            maxTokens: 900
         ))
     }
 
@@ -454,7 +454,17 @@ final class ClaudeService {
         defer { isLoading = false }
 
         let request = try provider.urlRequest(spec, apiKey: key, model: model(for: provider), localBaseURL: ollamaBaseURL)
-        return try provider.parseReply(try await perform(request))
+        let reply = try provider.parseFullReply(try await perform(request))
+        guard reply.truncated else { return reply.text }
+
+        // Cut off at the token limit: ask once more with twice the room, then fall back to the last whole sentence.
+        var roomier = spec
+        roomier.maxTokens = spec.maxTokens * 2
+        let retryRequest = try provider.urlRequest(roomier, apiKey: key, model: model(for: provider), localBaseURL: ollamaBaseURL)
+        let retry = (try? provider.parseFullReply(try await perform(retryRequest))) ?? reply
+        let best = retry.text.isEmpty ? reply : retry
+        guard best.text.isNotEmpty else { throw ClaudeError.parseError }
+        return best.truncated ? AIReply.trimmedToLastSentence(best.text) : best.text
     }
 
     private func perform(_ request: URLRequest) async throws -> Data {

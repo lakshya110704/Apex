@@ -420,7 +420,7 @@ struct CoachView: View {
             }
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
+                Text(message.role == .assistant ? CoachMarkdown.attributed(message.content) : AttributedString(message.content))
                     .font(.subheadline)
                     .foregroundStyle(ApexColor.textPrimary)
                     .padding(.horizontal, 14)

@@ -287,7 +287,7 @@ enum WeeklyReviewEngine {
 
     /// The review text and the schedule changes it suggests, as `[schedule ...]` tags so they can be stored and parsed again.
     static func parse(_ reply: String, calendar: Calendar = .current) -> (text: String, suggestions: [String]) {
-        let pattern = #"\[\s*schedule\s+[a-z]+\s*:\s*[^\]]+?\s*\]"#
+        let pattern = #"\[\s*schedule\s+[a-z]+\s*[:\-–—]\s*[^\]]+?\s*\]"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return (reply, []) }
         let ns = reply as NSString
         let tags = regex.matches(in: reply, range: NSRange(location: 0, length: ns.length))

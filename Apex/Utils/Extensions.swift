@@ -122,3 +122,28 @@ extension Color {
         )
     }
 }
+
+// MARK: - Coach replies
+
+/// Shows a model's markdown (bold, italics, code, links) instead of literal asterisks.
+/// Headings become bold lines and list markers become bullets, since SwiftUI's Text only renders inline markdown.
+enum CoachMarkdown {
+    static func attributed(_ text: String) -> AttributedString {
+        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        return (try? AttributedString(markdown: normalizedBlocks(text), options: options)) ?? AttributedString(text)
+    }
+
+    static func normalizedBlocks(_ text: String) -> String {
+        text.components(separatedBy: "\n").map { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if let heading = trimmed.range(of: #"^#{1,6}\s+"#, options: .regularExpression) {
+                let title = trimmed[heading.upperBound...].trimmingCharacters(in: CharacterSet(charactersIn: "* "))
+                return title.isEmpty ? "" : "**\(title)**"
+            }
+            if let bullet = trimmed.range(of: #"^[-*+]\s+"#, options: .regularExpression) {
+                return "• " + trimmed[bullet.upperBound...]
+            }
+            return line
+        }.joined(separator: "\n")
+    }
+}
